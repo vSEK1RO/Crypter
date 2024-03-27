@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int main(){
+void foo(){
     using namespace CryptoPP;
     DefaultAutoSeededRNG rng;
     InvertibleRSAFunction irsa;
@@ -42,5 +42,4 @@ int main(){
     memcpy(src+enc.size(),out.data(),out.size());
     munmap(src,enc.size()+out.size());
     close(fd);
-    return 0;
 }

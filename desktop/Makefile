@@ -1,15 +1,16 @@
 ### Change -I -L -l vars for your dependencies locations
-DEPSDIR = /home/sek1ro/Desktop/se/libs
-DEPS = 
--I = ${patsubst %, -I${DEPSDIR}/%/include, ${DEPS}}
--L = ${patsubst %, -L${DEPSDIR}/%/lib, ${DEPS}}
--l = -lcryptopp
+INCS = /usr/include
+LIBS = /urs/lib
+DEPS = qt6 qt6/QtWidgets
+-I = ${patsubst %, -I${INCS}/%, ${DEPS}} -I${INCS}
+-L = ${patsubst %, -L${LIBS}/%, ${DEPS}} -L${LIBS}
+-l = -lcryptopp -lQt6Widgets -lQt6Core
 ### Read upper
 
 CC = g++
 DBG = gdb
-CFLAGS = -Wall -Wextra -Werror -O0 -g
-OBJS = 
+CFLAGS = -Wall -Wextra -Werror -O0 -g -fPIC
+OBJS = mainwindow.o
 
 SRCDIR = src
 OBJDIR = obj
