@@ -9,6 +9,11 @@ const router = createRouter({
             component: () => import('@/views/cIndex.vue')
         },
         {
+            path: '/keys',
+            name: 'keys',
+            component: () => import('@/views/cKeys.vue')
+        },
+        {
             path: '/encrypt',
             name: 'encrypt',
             component: () => import('@/views/cEncrypt.vue')

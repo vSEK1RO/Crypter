@@ -1,7 +1,7 @@
 <script setup>
 import {ref} from 'vue'
 
-const isCollapsed = ref(false)
+const isCollapsed = ref(true)
 
 </script>
 
@@ -17,6 +17,10 @@ const isCollapsed = ref(false)
     <el-menu-item index="/">
         <el-icon><message/></el-icon>
         <el-text>Crypter</el-text>
+    </el-menu-item>
+    <el-menu-item index="/keys">
+        <el-icon><key/></el-icon>
+        <el-text>Keys</el-text>
     </el-menu-item>
     <el-menu-item index="/encrypt">
         <el-icon><lock/></el-icon>
