@@ -1,5 +1,5 @@
 <script setup>
-import {ref} from 'vue'
+import {ref} from 'vue' 
 
 const isCollapsed = ref(true)
 
@@ -34,8 +34,18 @@ const isCollapsed = ref(true)
 </template>
 
 <style scoped lang="scss">
+@media (max-width: 900px){
+    .el-menu-item{
+        height: 100%;
+    }
+    .c-aside{
+        width: 100%;
+    }
+}
+@media (min-width: 900px){
+}
 .c-aside{
-    position: absolute;
+    height: 100%;
     border: 1px solid var(--el-border-color);
     border-radius: var(--el-border-radius-round);
     box-shadow: var(--el-box-shadow);
