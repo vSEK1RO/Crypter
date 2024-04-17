@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 
-export const useKeys = defineStore('keys', {
+export const useEncrypt = defineStore('encrypt', {
     state: ()=>{
         return {
-            pub: []
+            msg: []
         }
     }
 })

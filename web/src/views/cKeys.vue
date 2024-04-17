@@ -3,10 +3,8 @@ import cAside from '@/components/cAside.vue'
 import { useKeys } from '@/stores/keys'
 import { reactive, ref } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
-import { useRoute, useRouter } from 'vue-router'
-import forge from 'node-forge'
+import { useRouter } from 'vue-router'
 
-const route = useRoute()
 const router = useRouter()
 const keys = useKeys()
 const form = reactive({
@@ -55,36 +53,21 @@ async function submitHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    let publickey = ''
-    new Promise((resolve, reject)=>{
-        forge.pki.rsa.generateKeyPair({ bits: 2048 }, (err, keypair) => {
-            loading.value = false
-            if (err) {
-                reject(err)
-            }else{
-                resolve(keypair)
-            }
-        })
-    }).then(keypair=>{
-        publickey = forge.pki.publicKeyToPem(keypair.publicKey)
-        let now = new Date()
-        const hours = now.getUTCHours().toString().padStart(2,'0');
-        const minutes = now.getUTCMinutes().toString().padStart(2,'0');
-        const month = now.getMonth().toString().padStart(2,'0');
-        const day = now.getDate().toString().padStart(2,'0');
-        keys.pub.push({
-            date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
-            name: form.name,
-            key: publickey,
-        })
-        console.log(publickey)
-        console.log(`"${form.name}" public key was created`)
-    }).catch(err=>{
-        ElMessage.error({
-            title: 'Key generation error',
-            message: `${err}`
-        });
+    //todo
+    loading.value = false
+    let now = new Date()
+    const hours = now.getUTCHours().toString().padStart(2,'0');
+    const minutes = now.getUTCMinutes().toString().padStart(2,'0');
+    const month = now.getMonth().toString().padStart(2,'0');
+    const day = now.getDate().toString().padStart(2,'0');
+    keys.pub.push({
+        date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
+        name: form.name,
+        key: publicKey,
     })
+    console.log(publicKey)
+    console.log(`"${form.name}" public key was created`)
+        
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -148,7 +131,7 @@ function deleteHandler(eventData){
 </script>
 
 <template>
-<el-container class="c-keys">
+<el-container>
     <el-aside>
         <cAside></cAside>
     </el-aside>
@@ -161,7 +144,7 @@ function deleteHandler(eventData){
                 <h2>Copy and share public key</h2>
             </template>
             <template #default>
-                <div class="public-key-media">
+                <div class="drawer-media">
                     <el-text> 
                         {{ drawer.media }}
                     </el-text>
@@ -278,22 +261,24 @@ function deleteHandler(eventData){
 </template>
 
 <style scoped lang="scss">
-.c-keys{
-    padding-top: 100px;
+.el-container{
     width: 100%;
+    height: 100%;
+    position: absolute;
     display: flex;
+    align-items: center;
     justify-content: center;
 }
 .el-aside{
     top: 260px;
     left: 44px;
-    position: absolute;
+    position: fixed;
     z-index: 10;
 }
 .el-main{
     max-width: 800px;
 }
-.el-form, .public-key-media{
+.el-form, .drawer-media{
     padding: 16px;
     border: 1px solid var(--el-border-color);
     background-color: var(--el-bg-color);
@@ -302,7 +287,7 @@ function deleteHandler(eventData){
     border-radius: var(--el-border-radius-round);
     box-shadow: var(--el-box-shadow);
 }
-.public-key-media{
+.drawer-media{
     border-radius: var(--el-border-radius-base);
     box-shadow: var(--el-box-shadow-light);
 }
