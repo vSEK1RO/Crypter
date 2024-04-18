@@ -4,6 +4,7 @@ import { useKeys } from '@/stores/keys'
 import { reactive, ref } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
+import forge from 'node-forge'
 
 const router = useRouter()
 const keys = useKeys()
@@ -16,7 +17,8 @@ const loading = ref(false)
 const drawer = reactive({
     isActive: false,
     name: '',
-    media: '',
+    pub: '',
+    priv: '',
 })
 async function submitHandler(eventData){
     let flag=false
@@ -53,7 +55,10 @@ async function submitHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    //todo
+    let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 2048})
+    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, form.passphrase)
+    let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
+    console.log(privateKey) 
     loading.value = false
     let now = new Date()
     const hours = now.getUTCHours().toString().padStart(2,'0');
@@ -64,6 +69,7 @@ async function submitHandler(eventData){
         date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
         name: form.name,
         key: publicKey,
+        priv: privateKey,
     })
     console.log(publicKey)
     console.log(`"${form.name}" public key was created`)
@@ -75,12 +81,23 @@ function sleep(ms) {
 function showHandler(eventData){
     let ind = keys.pub.findIndex(key=>key.name==eventData)
     drawer.isActive = true
-    drawer.media = keys.pub[ind].key
+    drawer.pub = keys.pub[ind].key
+    drawer.priv = keys.pub[ind].priv
     drawer.name = keys.pub[ind].name
     console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.media)
+    navigator.clipboard.writeText(drawer.pub)
+        .then(() => {
+            ElMessage.success('Copied to clipboard')
+        })
+        .catch(err => {
+            ElMessage.error('Error during copying')
+        });
+    console.log(`"${drawer.name}" public key was copied`)
+}
+function copyPrivateHandler(eventData){
+    navigator.clipboard.writeText(drawer.priv)
         .then(() => {
             ElMessage.success('Copied to clipboard')
         })
@@ -146,7 +163,12 @@ function deleteHandler(eventData){
             <template #default>
                 <div class="drawer-media">
                     <el-text> 
-                        {{ drawer.media }}
+                        {{ drawer.pub }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <el-text> 
+                        {{ drawer.priv }}   
                     </el-text>
                 </div>
             </template>
@@ -155,20 +177,26 @@ function deleteHandler(eventData){
                 type="success"
                 @click="copyHandler"
                 >
-                    Copy to clipboard
+                    Copy public to clipboard
+                </el-button>
+                <el-button
+                type="danger"
+                @click="copyPrivateHandler"
+                >
+                    Copy private to clipboard
                 </el-button>
             </template>
         </el-drawer>
         <el-form>
             <el-form-item>
                 <el-text>
-                    <h2>Generate public key</h2>
+                    <h2>Generate keypair</h2>
                 </el-text>
             </el-form-item>
             <el-form-item>
                 <el-input
                 v-model="form.name"
-                placeholder="public key name"
+                placeholder="keypair name"
                 ></el-input>
             </el-form-item>
             <el-form-item>
@@ -270,7 +298,7 @@ function deleteHandler(eventData){
     justify-content: center;
 }
 .el-aside{
-    top: 260px;
+    top: 35%;
     left: 44px;
     position: fixed;
     z-index: 10;

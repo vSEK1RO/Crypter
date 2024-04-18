@@ -4,6 +4,7 @@ import { useEncrypt } from '@/stores/encrypt'
 import { reactive, ref } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
+import forge from 'node-forge'
 
 const router = useRouter()
 const route = useRoute()
@@ -54,7 +55,7 @@ async function encryptHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    //todo
+    let encryptedMsg = forge.pki.publicKeyFromPem(form.key).encrypt(form.message, 'RSA-OAEP');
     loading.value = false
     let now = new Date()
     const hours = now.getUTCHours().toString().padStart(2,'0');
@@ -273,7 +274,7 @@ function deleteHandler(eventData){
     justify-content: center;
 }
 .el-aside{
-    top: 260px;
+    top: 35%;
     left: 44px;
     position: fixed;
     z-index: 10;

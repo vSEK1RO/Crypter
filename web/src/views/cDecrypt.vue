@@ -3,6 +3,7 @@ import cAside from '@/components/cAside.vue'
 import { reactive, ref } from 'vue'
 import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
+import forge from 'node-forge'
 
 const route = useRoute()
 const drawer = reactive({
@@ -11,6 +12,7 @@ const drawer = reactive({
 })
 const form = reactive({
     passphrase: '',
+    privatekey: '',
     encrypted: route.query.encryptedMsg,
 })
 const loading = ref(false)
@@ -33,7 +35,15 @@ async function decryptHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    //todo
+    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, form.passphrase);
+    if(decryptedPrivateKey==null){
+        ElMessage.error('Passphrase incorrect')
+    }
+    let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
+    if(decryptedPrivateKeyPem==null){
+        ElMessage.error('Passphrase incorrect')
+    }
+    let decryptedMsg = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem).decrypt(form.encrypted, 'RSA-OAEP');
     loading.value = false
     drawer.media = decryptedMsg
     drawer.isActive = true
@@ -72,10 +82,17 @@ function sleep(ms) {
             </el-form-item>
             <el-form-item>
                 <el-input
-                autosize
                 show-password
                 v-model="form.passphrase"
                 placeholder="passphrase"
+                ></el-input>
+            </el-form-item>
+            <el-form-item>
+                <el-input
+                autosize
+                show-password
+                v-model="form.privatekey"
+                placeholder="private key"
                 ></el-input>
             </el-form-item>
             <el-form-item>
@@ -110,7 +127,7 @@ function sleep(ms) {
     justify-content: center;
 }
 .el-aside{
-    top: 260px;
+    top: 35%;
     left: 44px;
     position: fixed;
     z-index: 10;
