@@ -17,6 +17,9 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v3
 
+      - name: Update repo
+        run: sudo apt update
+
       - name: Install dependencies
         run: sudo apt install npm 
 
