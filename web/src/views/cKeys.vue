@@ -112,6 +112,9 @@ function shareHandler(eventData, request){
         let protocol = window.location.protocol
         let hostname = window.location.hostname
         let port = window.location.port
+        if(port==''){
+            port='443'
+        }
         let {href} = router.resolve({path: 'encrypt', query: {publicKey: keys.pub[ind].key}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${href}`)
             .then(() => {
