@@ -4,7 +4,7 @@ import cAside from '@/components/cAside.vue'
 
 <template>
 <el-container>
-    <el-aside>
+    <el-aside>  
         <cAside></cAside>
     </el-aside>
     <el-main>

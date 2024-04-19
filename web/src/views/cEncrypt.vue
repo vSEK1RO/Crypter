@@ -262,7 +262,6 @@ function deleteHandler(eventData){
                 </el-table>
             </el-form-item>
         </el-form>
-        
     </el-main>
 </el-container>
 </template>
