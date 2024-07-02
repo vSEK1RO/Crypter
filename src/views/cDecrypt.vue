@@ -1,5 +1,4 @@
 <script setup>
-import cAside from '@/components/cAside.vue'
 import { useKeys } from '@/stores/keys'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessage} from 'element-plus'
@@ -8,6 +7,7 @@ import forge from 'node-forge'
 import { fromBinary } from '@/composables/fromBinary'
 import { toBinary } from '@/composables/toBinary'
 
+const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
 const route = useRoute()
 const drawer = reactive({
@@ -65,104 +65,73 @@ function sleep(ms) {
 onMounted(() => {
     keys.get()
 })
+addEventListener('resize', () => {
+    isMobile.value = window.outerWidth < 900
+})
 </script>
 
 <template>
-<el-container>
-    <el-aside>
-        <cAside></cAside>
-    </el-aside>
-    <el-main>
-        <el-drawer
-        size="50%"
-        v-model="drawer.isActive"
-        >
-            <template #header>
-                <h2>Decrypted message</h2>
-            </template>
-            <template #default>
-                <div class="drawer-media">
-                    <el-text> 
-                        {{ drawer.media }}
-                    </el-text>
-                </div>
-            </template>
-        </el-drawer>
-        <el-form>
-            <el-form-item>
-                <el-text>
-                    <h2>Decrypt message</h2>
+    <el-drawer
+    :size="isMobile?`100%`:`50%`"
+    v-model="drawer.isActive"
+    >
+        <template #header>
+            <h2>Decrypted message</h2>
+        </template>
+        <template #default>
+            <div class="drawer-media">
+                <el-text> 
+                    {{ drawer.media }}
                 </el-text>
-            </el-form-item>
-            <el-form-item>
-                <el-input
-                show-password
-                v-model="form.passphrase"
-                placeholder="passphrase"
-                ></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-select
-                autosize
-                show-password
-                v-model="form.privatekey"
-                placeholder="private key"
-                >
-                    <el-option
-                    v-for="item in keys.pub"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.priv"
-                    />
-                </el-select>
-            </el-form-item>
-            <el-form-item>
-                <el-input
-                autosize
-                type="textarea"
-                v-model="form.encrypted"
-                placeholder="encrypted message"
-                ></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-button
-                @click="decryptHandler"
-                type="success"
-                >
-                    Decrypt
-                </el-button>
-            </el-form-item>
-        </el-form>
-        
-    </el-main>
-</el-container>
+            </div>
+        </template>
+    </el-drawer>
+    <el-form>
+        <el-form-item>
+            <el-text>
+                <h2>Decrypt message</h2>
+            </el-text>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            show-password
+            v-model="form.passphrase"
+            placeholder="passphrase"
+            ></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-select
+            autosize
+            show-password
+            v-model="form.privatekey"
+            placeholder="private key"
+            >
+                <el-option
+                v-for="item in keys.pub"
+                :key="item.name"
+                :label="item.name"
+                :value="item.priv"
+                />
+            </el-select>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            autosize
+            type="textarea"
+            v-model="form.encrypted"
+            placeholder="encrypted message"
+            ></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button
+            @click="decryptHandler"
+            type="success"
+            >
+                Decrypt
+            </el-button>
+        </el-form-item>
+    </el-form>
 </template>
 
 <style scoped lang="scss">
-.el-container{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.el-aside{
-    top: 35%;
-    left: 44px;
-    position: fixed;
-    z-index: 10;
-}
-.el-main{
-    max-width: 800px;
-}
-.el-form{
-    padding: 16px;
-    border: 1px solid var(--el-border-color);
-    background-color: var(--el-bg-color);
-}
-.el-form{
-    border-radius: var(--el-border-radius-round);
-    box-shadow: var(--el-box-shadow);
-}
 </style>

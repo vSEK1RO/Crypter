@@ -12,3 +12,22 @@ body {
     background-repeat: no-repeat;
     background-size: cover;
 }
+.el-form, .drawer-media{
+    padding: 16px;
+    border: 1px solid var(--el-border-color);
+    background-color: var(--el-bg-color);
+}
+.el-form{
+    border-radius: var(--el-border-radius-round);
+    box-shadow: var(--el-box-shadow);
+}
+.drawer-media{
+    border-radius: var(--el-border-radius-base);
+    box-shadow: var(--el-box-shadow-light);
+}
+.el-table{
+    max-width: 100%;
+    border-radius: var(--el-border-radius-base);
+    box-shadow: var(--el-box-shadow-light);
+    background-color: var(--el-bg-color);
+}   

@@ -1,22 +1,34 @@
 <script setup>
-import {ref} from 'vue' 
+import { computed, ref } from 'vue' 
 
 const isCollapsed = ref(true)
+const isMobile = ref(window.outerWidth < 900)
+const mode = computed(() => {
+    return isMobile.value?`horizontal`:`vertical`
+})
+const collapse = computed(() => {
+    return isCollapsed.value && !isMobile.value
+})
 
+addEventListener('resize', () => {
+    isMobile.value = window.outerWidth < 900
+})
 </script>
 
 <template>
 <el-menu
     class="c-aside"
-    mode="vertical"
-    :collapse="isCollapsed"
+    :mode="mode"
+    :collapse="collapse"
+    :ellipsis="false"
     router
     @mouseover="isCollapsed=false"
     @mouseleave="isCollapsed=true"
+    style="justify-content: center;"
 >
     <el-menu-item index="/">
         <el-icon><message/></el-icon>
-        <el-text>Crypter</el-text>
+        <el-text v-if="!isMobile">Crypter</el-text>
     </el-menu-item>
     <el-menu-item index="/keys">
         <el-icon><key/></el-icon>
@@ -34,10 +46,9 @@ const isCollapsed = ref(true)
 </template>
 
 <style scoped lang="scss">
-.c-aside{
-    height: 100%;
-    border: 1px solid var(--el-border-color);
-    border-radius: var(--el-border-radius-round);
-    box-shadow: var(--el-box-shadow);
-}
+    .el-menu {
+        user-select: none;
+        border-radius: var(--el-border-radius-round);
+        box-shadow: var(--el-box-shadow);
+    }
 </style>

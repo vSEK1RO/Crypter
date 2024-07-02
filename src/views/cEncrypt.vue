@@ -1,5 +1,4 @@
 <script setup>
-import cAside from '@/components/cAside.vue'
 import { useEncrypt } from '@/stores/encrypt'
 import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
@@ -7,6 +6,7 @@ import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
 
+const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
 const route = useRoute()
 const encrypt = useEncrypt()
@@ -140,174 +140,134 @@ function deleteHandler(eventData){
 onMounted(() => {
     encrypt.get()
 })
+addEventListener('resize', () => {
+    isMobile.value = window.outerWidth < 900
+})
 </script>
 
 <template>
-<el-container>
-    <el-aside>
-        <cAside></cAside>
-    </el-aside>
-    <el-main>
-        <el-drawer
-        size="50%"
-        v-model="drawer.isActive"
-        >
-            <template #header>
-                <h2>Copy and share encrypted message</h2>
-            </template>
-            <template #default>
-                <div class="drawer-media">
-                    <el-text> 
-                        {{ drawer.media }}
-                    </el-text>
-                </div>
-            </template>
-            <template #footer>
-                <el-button
-                type="success"
-                @click="copyHandler"
-                >
-                    Copy to clipboard
-                </el-button>
-            </template>
-        </el-drawer>
-        <el-form>
-            <el-form-item>
-                <el-text>
-                    <h2>Encrypt message</h2>
+    <el-drawer
+    :size="isMobile?`100%`:`50%`"
+    v-model="drawer.isActive"
+    >
+        <template #header>
+            <h2>Copy and share encrypted message</h2>
+        </template>
+        <template #default>
+            <div class="drawer-media">
+                <el-text> 
+                    {{ drawer.media }}
                 </el-text>
-            </el-form-item>
-            <el-form-item>
-                <el-input
-                v-model="form.name"
-                placeholder="message name"
-                ></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-input
-                autosize
-                type="textarea"
-                v-model="form.key"
-                placeholder="public key"
-                ></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-input
-                autosize
-                type="textarea"
-                v-model="form.message"
-                placeholder="message"
-                ></el-input>
-            </el-form-item>
-            <el-form-item>
-                <el-button
-                @click="encryptHandler"
-                type="success"
+            </div>
+        </template>
+        <template #footer>
+            <el-button
+            type="success"
+            @click="copyHandler"
+            >
+                Copy to clipboard
+            </el-button>
+        </template>
+    </el-drawer>
+    <el-form>
+        <el-form-item>
+            <el-text>
+                <h2>Encrypt message</h2>
+            </el-text>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            v-model="form.name"
+            placeholder="message name"
+            ></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            autosize
+            type="textarea"
+            v-model="form.key"
+            placeholder="public key"
+            ></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            autosize
+            type="textarea"
+            v-model="form.message"
+            placeholder="message"
+            ></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button
+            @click="encryptHandler"
+            type="success"
+            >
+                Encrypt
+            </el-button>
+        </el-form-item>
+        <el-form-item>
+            <el-table
+            v-if="encrypt.msg.length!=0"
+            :data="encrypt.msg"
+            v-loading="loading"
+            >  
+                <el-table-column
+                label="Date"
+                prop="date"
                 >
-                    Encrypt
-                </el-button>
-            </el-form-item>
-            <el-form-item>
-                <el-table
-                v-if="encrypt.msg.length!=0"
-                :data="encrypt.msg"
-                v-loading="loading"
-                >  
-                    <el-table-column
-                    label="Date"
-                    prop="date"
-                    >
-                    
-                    </el-table-column>
-                    <el-table-column
-                    label="Name"
-                    prop="name"
-                    >
-                        <template #default="scope">
-                            <el-tag><h2>{{ scope.row.name }}</h2></el-tag>
-                        </template>
-                    </el-table-column>
-                    <el-table-column
-                    align="right"
-                    label="Operations"
-                    >
-                        <template #default="scope">
-                            <el-button
-                            size="small"
-                            type="info"
-                            @click="showHandler(scope.row.name)"
-                            >
-                                Show
-                            </el-button>
-                            <el-popconfirm
-                            width="220"
-                            confirm-button-text="Yes"
-                            cancel-button-text="No"
-                            @cancel="shareHandler(scope.row.name, 'cancel')"
-                            @confirm="shareHandler(scope.row.name, 'confirm')"
-                            title="Link copied. Do you want to be redirected?"
-                            >
-                                <template #reference>
-                                    <el-button
-                                    size="small"
-                                    type="success"
-                                    @click="shareHandler(scope.row.name, 'click')"
-                                    >
-                                        Share
-                                    </el-button>
-                                </template>
-                            </el-popconfirm>
-                            <el-button
-                            size="small"
-                            type="danger"
-                            @click="deleteHandler(scope.row.name)"
-                            >
-                                Delete
-                            </el-button>
-                        </template>
-                    </el-table-column>
-                </el-table>
-            </el-form-item>
-        </el-form>
-    </el-main>
-</el-container>
+                
+                </el-table-column>
+                <el-table-column
+                label="Name"
+                prop="name"
+                >
+                    <template #default="scope">
+                        <el-tag><h2>{{ scope.row.name }}</h2></el-tag>
+                    </template>
+                </el-table-column>
+                <el-table-column
+                align="right"
+                label="Operations"
+                >
+                    <template #default="scope">
+                        <el-button
+                        size="small"
+                        type="info"
+                        @click="showHandler(scope.row.name)"
+                        >
+                            Show
+                        </el-button>
+                        <el-popconfirm
+                        width="220"
+                        confirm-button-text="Yes"
+                        cancel-button-text="No"
+                        @cancel="shareHandler(scope.row.name, 'cancel')"
+                        @confirm="shareHandler(scope.row.name, 'confirm')"
+                        title="Link copied. Do you want to be redirected?"
+                        >
+                            <template #reference>
+                                <el-button
+                                size="small"
+                                type="success"
+                                @click="shareHandler(scope.row.name, 'click')"
+                                >
+                                    Share
+                                </el-button>
+                            </template>
+                        </el-popconfirm>
+                        <el-button
+                        size="small"
+                        type="danger"
+                        @click="deleteHandler(scope.row.name)"
+                        >
+                            Delete
+                        </el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+        </el-form-item>
+    </el-form>
 </template>
 
-<style scoped lang="scss">
-.el-container{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.el-aside{
-    top: 35%;
-    left: 44px;
-    position: fixed;
-    z-index: 10;
-}
-.el-main{
-    max-width: 800px;
-}
-.el-form, .drawer-media{
-    padding: 16px;
-    border: 1px solid var(--el-border-color);
-    background-color: var(--el-bg-color);
-}
-.el-form{
-    border-radius: var(--el-border-radius-round);
-    box-shadow: var(--el-box-shadow);
-}
-.drawer-media{
-    border-radius: var(--el-border-radius-base);
-    box-shadow: var(--el-box-shadow-light);
-}
-.el-table{
-    max-width: 100%;
-    border-radius: var(--el-border-radius-base);
-    box-shadow: var(--el-box-shadow-light);
-    background-color: var(--el-bg-color);
-}   
+<style scoped lang="scss"> 
 </style>
