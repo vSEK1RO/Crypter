@@ -1,10 +1,11 @@
 <script setup>
 import cAside from '@/components/cAside.vue'
 import { useKeys } from '@/stores/keys'
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
 import forge from 'node-forge'
+import { toBinary } from '@/composables/toBinary'
 
 const router = useRouter()
 const keys = useKeys()
@@ -49,7 +50,7 @@ async function submitHandler(eventData){
     if(flag)return
     loading.value = true
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
-    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, form.passphrase)
+    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
     console.log(privateKey) 
     loading.value = false
@@ -64,6 +65,7 @@ async function submitHandler(eventData){
         key: publicKey,
         priv: privateKey,
     })
+    keys.set()
     console.log(publicKey)
     console.log(`"${form.name}" public key was created`)
         
@@ -130,6 +132,7 @@ function deleteHandler(eventData){
     ElMessageBox.confirm(`Are you sure to delete key "${eventData}"?`)
         .then(()=>{
             keys.pub.splice(ind,1)
+            keys.set()
             console.log(`"${eventData}" public key was deleted`)
         })
         .catch((err)=>{
@@ -141,6 +144,10 @@ function deleteHandler(eventData){
             }   
         })
 }
+
+onMounted(() => {
+    keys.get()
+})
 </script>
 
 <template>

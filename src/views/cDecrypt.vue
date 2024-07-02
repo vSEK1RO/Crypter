@@ -1,10 +1,14 @@
 <script setup>
 import cAside from '@/components/cAside.vue'
-import { reactive, ref } from 'vue'
+import { useKeys } from '@/stores/keys'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
+import { fromBinary } from '@/composables/fromBinary'
+import { toBinary } from '@/composables/toBinary'
 
+const keys = useKeys()
 const route = useRoute()
 const drawer = reactive({
     isActive: false,
@@ -35,7 +39,7 @@ async function decryptHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, form.passphrase);
+    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, toBinary(form.passphrase));
     if(decryptedPrivateKey==null){
         ElMessage.error('Passphrase incorrect')
     }
@@ -43,7 +47,13 @@ async function decryptHandler(eventData){
     if(decryptedPrivateKeyPem==null){
         ElMessage.error('Passphrase incorrect')
     }
-    let decryptedMsg = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem).decrypt(atob(form.encrypted), 'RSA-OAEP');
+    let b64enc = ""
+    if(form.encrypted != null)
+    {
+        b64enc = atob(form.encrypted)
+    }
+    let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
+    let decryptedMsg = fromBinary(privateKey.decrypt(b64enc, 'RSA-OAEP'))
     loading.value = false
     drawer.media = decryptedMsg
     drawer.isActive = true
@@ -51,6 +61,10 @@ async function decryptHandler(eventData){
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+onMounted(() => {
+    keys.get()
+})
 </script>
 
 <template>
@@ -88,12 +102,19 @@ function sleep(ms) {
                 ></el-input>
             </el-form-item>
             <el-form-item>
-                <el-input
+                <el-select
                 autosize
                 show-password
                 v-model="form.privatekey"
                 placeholder="private key"
-                ></el-input>
+                >
+                    <el-option
+                    v-for="item in keys.pub"
+                    :key="item.name"
+                    :label="item.name"
+                    :value="item.priv"
+                    />
+                </el-select>
             </el-form-item>
             <el-form-item>
                 <el-input

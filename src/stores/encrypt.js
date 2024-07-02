@@ -5,16 +5,18 @@ export const useEncrypt = defineStore('encrypt', {
         msg: []
     }),
     actions: {
-        set(){
+        set() {
             localStorage.setItem(
-                "encryptStore",JSON.stringify(this)
+                "encryptStore", JSON.stringify(this)
             )
         },
-        get(){
+        get() {
             const obj = JSON.parse(
                 localStorage.getItem("encryptStore")
             )
-            this.msg = obj.msg
+            if (obj != null) {
+                this.msg = obj.msg
+            }
         }
     }
 })

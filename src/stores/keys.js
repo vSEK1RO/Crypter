@@ -5,16 +5,18 @@ export const useKeys = defineStore('keys', {
         pub: []
     }),
     actions: {
-        set(){
+        set() {
             localStorage.setItem(
-                "keysStore",JSON.stringify(this)
+                "keysStore", JSON.stringify(this)
             )
         },
-        get(){
+        get() {
             const obj = JSON.parse(
                 localStorage.getItem("keysStore")
             )
-            this.pub = obj.pub
+            if (obj != null) {
+                this.pub = obj.pub
+            }
         }
     }
 })

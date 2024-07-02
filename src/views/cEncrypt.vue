@@ -1,17 +1,18 @@
 <script setup>
 import cAside from '@/components/cAside.vue'
 import { useEncrypt } from '@/stores/encrypt'
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
+import { toBinary } from '@/composables/toBinary'
 
 const router = useRouter()
 const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: atob(route.query.publicKey),
+    key: atob(route.query.publicKey || ""),
     message: '',
 })
 const loading = ref(false)
@@ -55,7 +56,7 @@ async function encryptHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(form.message, 'RSA-OAEP'));
+    let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
     loading.value = false
     let now = new Date()
     const hours = now.getUTCHours().toString().padStart(2,'0');
@@ -67,6 +68,7 @@ async function encryptHandler(eventData){
         name: form.name,
         enc: encryptedMsg,
     })
+    encrypt.set()
     console.log(encryptedMsg)
     console.log(`"${form.name}" msg was encrypted`)
     
@@ -122,6 +124,7 @@ function deleteHandler(eventData){
     ElMessageBox.confirm(`Are you sure to delete msg "${eventData}"?`)
         .then(()=>{
             encrypt.msg.splice(ind,1)
+            encrypt.set()
             console.log(`"${eventData}" encrypted msg was deleted`)
         })
         .catch((err)=>{
@@ -133,6 +136,10 @@ function deleteHandler(eventData){
             }   
         })
 }
+
+onMounted(() => {
+    encrypt.get()
+})
 </script>
 
 <template>
