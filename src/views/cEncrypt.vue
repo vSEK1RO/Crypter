@@ -11,7 +11,7 @@ const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: route.query.publicKey,
+    key: atob(route.query.publicKey),
     message: '',
 })
 const loading = ref(false)
@@ -55,7 +55,7 @@ async function encryptHandler(eventData){
     }
     if(flag)return
     loading.value = true
-    let encryptedMsg = forge.pki.publicKeyFromPem(form.key).encrypt(form.message, 'RSA-OAEP');
+    let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(form.message, 'RSA-OAEP'));
     loading.value = false
     let now = new Date()
     const hours = now.getUTCHours().toString().padStart(2,'0');

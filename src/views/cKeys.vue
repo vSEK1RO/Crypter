@@ -46,16 +46,9 @@ async function submitHandler(eventData){
         flag=true
         await sleep(1)
     }
-    if(form.passphrase.length<8){
-        ElMessage.error({
-            title: 'Invalid input',
-            message: 'Passphrases must be longer than 8 characters',
-        })
-        flag=true
-    }
     if(flag)return
     loading.value = true
-    let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 2048})
+    let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
     let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, form.passphrase)
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
     console.log(privateKey) 
@@ -115,7 +108,7 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'encrypt', query: {publicKey: keys.pub[ind].key}})
+        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
@@ -127,7 +120,7 @@ function shareHandler(eventData, request){
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: keys.pub[ind].key}})
+        router.push({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
         console.log(`redirect to "${eventData}" public key confirmed`)
     }
     

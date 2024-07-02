@@ -43,7 +43,7 @@ async function decryptHandler(eventData){
     if(decryptedPrivateKeyPem==null){
         ElMessage.error('Passphrase incorrect')
     }
-    let decryptedMsg = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem).decrypt(form.encrypted, 'RSA-OAEP');
+    let decryptedMsg = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem).decrypt(atob(form.encrypted), 'RSA-OAEP');
     loading.value = false
     drawer.media = decryptedMsg
     drawer.isActive = true
