@@ -22,6 +22,7 @@ addEventListener('resize', () => {
     :collapse="collapse"
     :ellipsis="false"
     router
+    :default-active="`/`+$route.name"
     @mouseover="isCollapsed=false"
     @mouseleave="isCollapsed=true"
     style="justify-content: center;"
