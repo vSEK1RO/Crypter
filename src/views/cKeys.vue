@@ -225,9 +225,8 @@ addEventListener('resize', () => {
                 Submit
             </el-button>
         </el-form-item>
-        <el-form-item>
+        <el-form-item v-if="keys.pub.length!=0">
             <cTable
-            v-if="keys.pub.length!=0"
             :data="keys.pub"
             :loading="loading"
             :is-mobile="isMobile"

@@ -7,7 +7,7 @@ export const useKeys = defineStore('keys', {
     actions: {
         set() {
             localStorage.setItem(
-                "keysStore", JSON.stringify(this)
+                "keysStore", JSON.stringify({pub: this.pub})
             )
         },
         get() {

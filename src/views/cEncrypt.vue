@@ -5,6 +5,7 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
+import cTable from '@/components/cTable.vue'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -207,9 +208,8 @@ addEventListener('resize', () => {
                 Encrypt
             </el-button>
         </el-form-item>
-        <el-form-item>
+        <el-form-item v-if="encrypt.msg.length!=0">
             <cTable
-            v-if="encrypt.msg.length!=0"
             :data="encrypt.msg"
             :loading="loading"
             :is-mobile="isMobile"

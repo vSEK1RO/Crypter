@@ -7,7 +7,7 @@ export const useEncrypt = defineStore('encrypt', {
     actions: {
         set() {
             localStorage.setItem(
-                "encryptStore", JSON.stringify(this)
+                "encryptStore", JSON.stringify({msg: this.msg})
             )
         },
         get() {
