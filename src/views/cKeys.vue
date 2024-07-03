@@ -257,7 +257,8 @@ addEventListener('resize', () => {
                         type="info"
                         @click="showHandler(scope.row.name)"
                         >
-                            Show
+                            <el-icon v-if="isMobile"><View /></el-icon>
+                            <div v-else>Show</div>
                         </el-button>
                         <el-popconfirm
                         width="220"

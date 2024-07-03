@@ -187,16 +187,16 @@ addEventListener('resize', () => {
             <el-input
             autosize
             type="textarea"
-            v-model="form.key"
-            placeholder="public key"
+            v-model="form.message"
+            placeholder="message"
             ></el-input>
         </el-form-item>
         <el-form-item>
             <el-input
             autosize
             type="textarea"
-            v-model="form.message"
-            placeholder="message"
+            v-model="form.key"
+            placeholder="public key"
             ></el-input>
         </el-form-item>
         <el-form-item>
@@ -240,7 +240,8 @@ addEventListener('resize', () => {
                         type="info"
                         @click="showHandler(scope.row.name)"
                         >
-                            Show
+                            <el-icon v-if="isMobile"><View /></el-icon>
+                            <div v-else>Show</div>
                         </el-button>
                         <el-popconfirm
                         width="220"

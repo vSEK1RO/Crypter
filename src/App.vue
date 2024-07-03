@@ -14,7 +14,12 @@ import cAside from '@/components/cAside.vue'
 <style scoped lang="scss">
 main {
     width: 100%;
-    min-height: 100vh;
+    @media screen and (min-width: 871px) {
+        min-height: 100vh;
+    }
+    @media screen and (max-width: 870px) {
+        min-height: calc(100vh - 60px);
+    }
     display: flex;
     flex-direction: column;
     align-items: center;
