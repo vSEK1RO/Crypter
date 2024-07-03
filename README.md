@@ -15,7 +15,7 @@
 
 ---
 
-Using Crypter you may create asymmetric RSA keys, encrypt your messages with them, and let your friend decrypt them.
+Using Crypter you may create asymmetric RSA keys, let your friend encrypt his messages with them, and decrypt them.
 1. Create RSA keypair, click share and send copied link to your friend.
 
 <img width="40%" src="https://i.imgur.com/Em2woA2.png"><img width="60%" src="https://i.imgur.com/ZNpzQVO.png">
