@@ -214,6 +214,7 @@ addEventListener('resize', () => {
                 <el-table-column
                 label="Date"
                 prop="date"
+                :width="isMobile?`70`:`120`"
                 >
                 
                 </el-table-column>
@@ -228,6 +229,8 @@ addEventListener('resize', () => {
                 <el-table-column
                 align="right"
                 label="Operations"
+                fixed="right"
+                min-width="120"
                 >
                     <template #default="scope">
                         <el-button
@@ -251,7 +254,8 @@ addEventListener('resize', () => {
                                 type="success"
                                 @click="shareHandler(scope.row.name, 'click')"
                                 >
-                                    Share
+                                    <el-icon v-if="isMobile"><share/></el-icon>
+                                    <div v-else>Share</div>
                                 </el-button>
                             </template>
                         </el-popconfirm>
@@ -260,7 +264,8 @@ addEventListener('resize', () => {
                         type="danger"
                         @click="deleteHandler(scope.row.name)"
                         >
-                            Delete
+                            <el-icon v-if="isMobile"><delete/></el-icon>
+                            <div v-else>Delete</div>
                         </el-button>
                     </template>
                 </el-table-column>
