@@ -112,7 +112,7 @@ function shareHandler(eventData, request){
             port='443'
         }
         let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
-        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${href}`)
+        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
             })
