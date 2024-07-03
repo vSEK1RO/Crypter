@@ -61,6 +61,16 @@ async function decryptHandler(eventData){
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
+function copyHandler(eventData){
+    navigator.clipboard.writeText(drawer.media)
+        .then(() => {
+            ElMessage.success('Copied to clipboard')
+        })
+        .catch(err => {
+            ElMessage.error('Error during copying')
+        });
+    console.log(`"${drawer.name}" decrypted msg was copied`)
+}
 
 onMounted(() => {
     keys.get()
@@ -79,11 +89,21 @@ addEventListener('resize', () => {
             <h2>Decrypted message</h2>
         </template>
         <template #default>
-            <div class="drawer-media">
-                <el-text> 
-                    {{ drawer.media }}
-                </el-text>
+            <div class="drawer-media-wrapper">
+                <div class="drawer-media">
+                    <el-text> 
+                        {{ drawer.media }}
+                    </el-text>
+                </div>
             </div>
+        </template>
+        <template #footer>
+            <el-button
+            type="danger"
+            @click="copyHandler"
+            >
+                Copy to clipboard
+            </el-button>
         </template>
     </el-drawer>
     <el-form>

@@ -154,10 +154,12 @@ addEventListener('resize', () => {
             <h2>Copy and share encrypted message</h2>
         </template>
         <template #default>
-            <div class="drawer-media">
-                <el-text> 
-                    {{ drawer.media }}
-                </el-text>
+            <div class="drawer-media-wrapper">
+                <div class="drawer-media">
+                    <el-text> 
+                        {{ drawer.media }}
+                    </el-text>
+                </div>
             </div>
         </template>
         <template #footer>

@@ -162,15 +162,17 @@ addEventListener('resize', () => {
             <h2>Copy and share public key</h2>
         </template>
         <template #default>
-            <div class="drawer-media">
-                <el-text> 
-                    {{ drawer.pub }}
-                </el-text>
-            </div>
-            <div class="drawer-media">
-                <el-text> 
-                    {{ drawer.priv }}   
-                </el-text>
+            <div class="drawer-media-wrapper">
+                <div class="drawer-media">
+                    <el-text> 
+                        {{ drawer.pub }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <el-text> 
+                        {{ drawer.priv }}   
+                    </el-text>
+                </div>
             </div>
         </template>
         <template #footer>
@@ -178,13 +180,13 @@ addEventListener('resize', () => {
             type="success"
             @click="copyHandler"
             >
-                Copy public to clipboard
+                Copy public
             </el-button>
             <el-button
             type="danger"
             @click="copyPrivateHandler"
             >
-                Copy private to clipboard
+                Copy private
             </el-button>
         </template>
     </el-drawer>
