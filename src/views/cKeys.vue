@@ -5,6 +5,7 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
+import cTable from '@/components/cTable.vue'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -225,71 +226,15 @@ addEventListener('resize', () => {
             </el-button>
         </el-form-item>
         <el-form-item>
-            <el-table
+            <cTable
             v-if="keys.pub.length!=0"
             :data="keys.pub"
-            v-loading="loading"
-            >  
-                <el-table-column
-                label="Date"
-                prop="date"
-                :width="isMobile?`70`:`120`"
-                >
-                
-                </el-table-column>
-                <el-table-column
-                label="Name"
-                prop="name"
-                >
-                    <template #default="scope">
-                        <el-tag><h2>{{ scope.row.name }}</h2></el-tag>
-                    </template>
-                </el-table-column>
-                <el-table-column
-                align="right"
-                label="Operations"
-                fixed="right"
-                min-width="120"
-                >
-                    <template #default="scope">
-                        <el-button
-                        size="small"
-                        type="info"
-                        @click="showHandler(scope.row.name)"
-                        >
-                            <el-icon v-if="isMobile"><View /></el-icon>
-                            <div v-else>Show</div>
-                        </el-button>
-                        <el-popconfirm
-                        width="220"
-                        confirm-button-text="Yes"
-                        cancel-button-text="No"
-                        @cancel="shareHandler(scope.row.name, 'cancel')"
-                        @confirm="shareHandler(scope.row.name, 'confirm')"
-                        title="Link copied. Do you want to be redirected?"
-                        >
-                            <template #reference>
-                                <el-button
-                                size="small"
-                                type="success"
-                                @click="shareHandler(scope.row.name, 'click')"
-                                >
-                                    <el-icon v-if="isMobile"><share/></el-icon>
-                                    <div v-else>Share</div>
-                                </el-button>
-                            </template>
-                        </el-popconfirm>
-                        <el-button
-                        size="small"
-                        type="danger"
-                        @click="deleteHandler(scope.row.name)"
-                        >
-                            <el-icon v-if="isMobile"><delete/></el-icon>
-                            <div v-else>Delete</div>
-                        </el-button>
-                    </template>
-                </el-table-column>
-            </el-table>
+            :loading="loading"
+            :is-mobile="isMobile"
+            @show="showHandler"
+            @share="shareHandler"
+            @delete="deleteHandler"
+            />
         </el-form-item>
     </el-form>
 </template>
