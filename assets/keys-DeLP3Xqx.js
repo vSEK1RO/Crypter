@@ -1,1 +1,0 @@
-import{m as t}from"./index-BLUod_VL.js";const o=t("keys",{state:()=>({pub:[]}),actions:{set(){localStorage.setItem("keysStore",JSON.stringify(this))},get(){const e=JSON.parse(localStorage.getItem("keysStore"));e!=null&&(this.pub=e.pub)}}});export{o as u};
