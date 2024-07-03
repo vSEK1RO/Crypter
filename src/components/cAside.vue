@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 const isCollapsed = ref(true)
 const isMobile = ref(window.outerWidth < 900)
+const isExtraSmall = ref(window.outerWidth < 500)
 const mode = computed(() => {
     return isMobile.value?`horizontal`:`vertical`
 })
@@ -11,6 +12,7 @@ const collapse = computed(() => {
 })
 
 addEventListener('resize', () => {
+    isExtraSmall.value = window.outerWidth < 500
     isMobile.value = window.outerWidth < 900
 })
 </script>
@@ -33,15 +35,15 @@ addEventListener('resize', () => {
     </el-menu-item>
     <el-menu-item index="/keys">
         <el-icon><key/></el-icon>
-        <el-text>Keys</el-text>
+        <el-text v-if="!isExtraSmall">Keys</el-text>
     </el-menu-item>
     <el-menu-item index="/encrypt">
         <el-icon><lock/></el-icon>
-        <el-text>Encrypt</el-text>
+        <el-text v-if="!isExtraSmall">Encrypt</el-text>
     </el-menu-item>
     <el-menu-item index="/decrypt">
         <el-icon><unlock/></el-icon>
-        <el-text>Decrypt</el-text>
+        <el-text v-if="!isExtraSmall">Decrypt</el-text>
     </el-menu-item>
 </el-menu>
 </template>
