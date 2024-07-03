@@ -1,0 +1,1 @@
+import{m as t}from"./index-C2e5BLRZ.js";const o=t("keys",{state:()=>({pub:[]}),actions:{set(){localStorage.setItem("keysStore",JSON.stringify({pub:this.pub}))},get(){const e=JSON.parse(localStorage.getItem("keysStore"));e!=null&&(this.pub=e.pub)}}});export{o as u};
