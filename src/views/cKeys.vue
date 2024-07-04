@@ -53,22 +53,16 @@ async function submitHandler(eventData){
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
     let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
-    console.log(privateKey) 
     loading.value = false
     let now = new Date()
-    const hours = now.getUTCHours().toString().padStart(2,'0');
-    const minutes = now.getUTCMinutes().toString().padStart(2,'0');
-    const month = now.getMonth().toString().padStart(2,'0');
-    const day = now.getDate().toString().padStart(2,'0');
     keys.data.push({
-        date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
+        date: now,
         name: form.name,
         pub: publicKey,
         priv: privateKey,
     })
     keys.set()
-    console.log(publicKey)
-    console.log(`"${form.name}" public key was created`)
+    console.log(`"${form.name}" keypair was created`)
         
 }
 function sleep(ms) {

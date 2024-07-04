@@ -60,12 +60,8 @@ async function encryptHandler(eventData){
     let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
     loading.value = false
     let now = new Date()
-    const hours = now.getUTCHours().toString().padStart(2,'0');
-    const minutes = now.getUTCMinutes().toString().padStart(2,'0');
-    const month = now.getMonth().toString().padStart(2,'0');
-    const day = now.getDate().toString().padStart(2,'0');
     encrypt.data.push({
-        date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
+        date: now,
         name: form.name,
         enc: encryptedMsg,
     })
