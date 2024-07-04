@@ -32,7 +32,7 @@ async function submitHandler(eventData){
         flag=true
         await sleep(1)
     }
-    if(keys.pub.findIndex(key=>key.name==form.name)!=-1){
+    if(keys.data.findIndex(key=>key.name==form.name)!=-1){
         ElMessage.error({
             title: 'Invalid input',
             message: 'Name already exists',
@@ -60,10 +60,10 @@ async function submitHandler(eventData){
     const minutes = now.getUTCMinutes().toString().padStart(2,'0');
     const month = now.getMonth().toString().padStart(2,'0');
     const day = now.getDate().toString().padStart(2,'0');
-    keys.pub.push({
+    keys.data.push({
         date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
         name: form.name,
-        key: publicKey,
+        pub: publicKey,
         priv: privateKey,
     })
     keys.set()
@@ -75,11 +75,11 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function showHandler(eventData){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     drawer.isActive = true
-    drawer.pub = keys.pub[ind].key
-    drawer.priv = keys.pub[ind].priv
-    drawer.name = keys.pub[ind].name
+    drawer.pub = keys.data[ind].pub
+    drawer.priv = keys.data[ind].priv
+    drawer.name = keys.data[ind].name
     console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
@@ -103,7 +103,7 @@ function copyPrivateHandler(eventData){
     console.log(`"${drawer.name}" public key was copied`)
 }
 function shareHandler(eventData, request){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     if(request=='click'){
         let protocol = window.location.protocol
         let hostname = window.location.hostname
@@ -111,7 +111,7 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
+        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
@@ -123,16 +123,16 @@ function shareHandler(eventData, request){
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
+        router.push({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
         console.log(`redirect to "${eventData}" public key confirmed`)
     }
     
 }
 function deleteHandler(eventData){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     ElMessageBox.confirm(`Are you sure to delete key "${eventData}"?`)
         .then(()=>{
-            keys.pub.splice(ind,1)
+            keys.data.splice(ind,1)
             keys.set()
             console.log(`"${eventData}" public key was deleted`)
         })
@@ -225,9 +225,9 @@ addEventListener('resize', () => {
                 Submit
             </el-button>
         </el-form-item>
-        <el-form-item v-if="keys.pub.length!=0">
+        <el-form-item v-if="keys.data.length!=0">
             <cTable
-            :data="keys.pub"
+            :data="keys.data"
             :loading="loading"
             :is-mobile="isMobile"
             @show="showHandler"

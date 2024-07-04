@@ -127,7 +127,7 @@ addEventListener('resize', () => {
             placeholder="private key"
             >
                 <el-option
-                v-for="item in keys.pub"
+                v-for="item in keys.data"
                 :key="item.name"
                 :label="item.name"
                 :value="item.priv"

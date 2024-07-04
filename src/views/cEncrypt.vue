@@ -24,7 +24,7 @@ const drawer = reactive({
 })
 async function encryptHandler(eventData){
     let flag=false
-    if(encrypt.msg.findIndex(msg=>msg.name==form.name)!=-1){
+    if(encrypt.data.findIndex(msg=>msg.name==form.name)!=-1){
         ElMessage.error({
             title: 'Invalid input',
             message: 'Name already exists',
@@ -64,7 +64,7 @@ async function encryptHandler(eventData){
     const minutes = now.getUTCMinutes().toString().padStart(2,'0');
     const month = now.getMonth().toString().padStart(2,'0');
     const day = now.getDate().toString().padStart(2,'0');
-    encrypt.msg.push({
+    encrypt.data.push({
         date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
         name: form.name,
         enc: encryptedMsg,
@@ -78,10 +78,10 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function showHandler(eventData){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     drawer.isActive = true
-    drawer.media = encrypt.msg[ind].enc
-    drawer.name = encrypt.msg[ind].name
+    drawer.media = encrypt.data[ind].enc
+    drawer.name = encrypt.data[ind].name
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
@@ -95,7 +95,7 @@ function copyHandler(eventData){
     console.log(`"${drawer.name}" encrypted msg was copied`)
 }
 function shareHandler(eventData, request){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     if(request=='click'){
         let protocol = window.location.protocol
         let hostname = window.location.hostname
@@ -103,7 +103,7 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.msg[ind].enc}})
+        let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
@@ -115,16 +115,16 @@ function shareHandler(eventData, request){
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'decrypt', query: {encryptedMsg: encrypt.msg[ind].enc}})
+        router.push({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         console.log(`redirect to "${eventData}" encrypted msg confirmed`)
     }
     
 }
 function deleteHandler(eventData){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     ElMessageBox.confirm(`Are you sure to delete msg "${eventData}"?`)
         .then(()=>{
-            encrypt.msg.splice(ind,1)
+            encrypt.data.splice(ind,1)
             encrypt.set()
             console.log(`"${eventData}" encrypted msg was deleted`)
         })
@@ -208,9 +208,9 @@ addEventListener('resize', () => {
                 Encrypt
             </el-button>
         </el-form-item>
-        <el-form-item v-if="encrypt.msg.length!=0">
+        <el-form-item v-if="encrypt.data.length!=0">
             <cTable
-            :data="encrypt.msg"
+            :data="encrypt.data"
             :loading="loading"
             :is-mobile="isMobile"
             @show="showHandler"

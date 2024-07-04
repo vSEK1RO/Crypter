@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 
 export const useKeys = defineStore('keys', {
     state: () => ({
-        pub: []
+        data: []
     }),
     actions: {
         set() {
             localStorage.setItem(
-                "keysStore", JSON.stringify({pub: this.pub})
+                "keysStore", JSON.stringify({data: this.data})
             )
         },
         get() {
@@ -15,7 +15,7 @@ export const useKeys = defineStore('keys', {
                 localStorage.getItem("keysStore")
             )
             if (obj != null) {
-                this.pub = obj.pub
+                this.data = obj.data
             }
         }
     }

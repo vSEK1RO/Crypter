@@ -2,12 +2,12 @@ import { defineStore } from 'pinia'
 
 export const useEncrypt = defineStore('encrypt', {
     state: () => ({
-        msg: []
+        data: []
     }),
     actions: {
         set() {
             localStorage.setItem(
-                "encryptStore", JSON.stringify({msg: this.msg})
+                "encryptStore", JSON.stringify({data: this.data})
             )
         },
         get() {
@@ -15,7 +15,7 @@ export const useEncrypt = defineStore('encrypt', {
                 localStorage.getItem("encryptStore")
             )
             if (obj != null) {
-                this.msg = obj.msg
+                this.data = obj.data
             }
         }
     }
