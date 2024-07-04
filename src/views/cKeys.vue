@@ -145,6 +145,7 @@ function exportHandler(){
 function importHandler(eventData){
     if(eventData.size>4*2**20){
         ElMessage.error({message: 'File is larger than 4MB'})
+        return
     }
     const reader = new FileReader()
     reader.onload = () => {
@@ -153,9 +154,11 @@ function importHandler(eventData){
             obj = JSON.parse(reader.result)
         }catch(error){
             ElMessage.error({message: "File isn't JSON"})
+            return
         }
         if(!Array.isArray(obj)){
             ElMessage.error({message: "Incorrect JSON format: isn't array"})
+            return
         }
         let flag = false
         obj.forEach(element => {
