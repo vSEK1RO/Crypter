@@ -6,6 +6,8 @@ import { useRouter } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
+import { saveFile } from '@/composables/saveFile'
+import { uploadFile } from '@/composables/uploadFile'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -26,15 +28,13 @@ async function submitHandler(eventData){
     let flag=false
     if(form.passphrase!=form.rpassphrase){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Passphrases do not match',
         })
         flag=true
         await sleep(1)
     }
-    if(keys.pub.findIndex(key=>key.name==form.name)!=-1){
+    if(keys.data.findIndex(key=>key.name==form.name)!=-1){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name already exists',
         })
         flag=true
@@ -42,7 +42,6 @@ async function submitHandler(eventData){
     }
     if(form.name==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name must not be empty',
         })
         flag=true
@@ -53,33 +52,27 @@ async function submitHandler(eventData){
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
     let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
-    console.log(privateKey) 
     loading.value = false
     let now = new Date()
-    const hours = now.getUTCHours().toString().padStart(2,'0');
-    const minutes = now.getUTCMinutes().toString().padStart(2,'0');
-    const month = now.getMonth().toString().padStart(2,'0');
-    const day = now.getDate().toString().padStart(2,'0');
-    keys.pub.push({
-        date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
+    keys.data.unshift({
+        date: now,
         name: form.name,
-        key: publicKey,
+        pub: publicKey,
         priv: privateKey,
     })
     keys.set()
-    console.log(publicKey)
-    console.log(`"${form.name}" public key was created`)
+    console.log(`"${form.name}" keypair was created`)
         
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function showHandler(eventData){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     drawer.isActive = true
-    drawer.pub = keys.pub[ind].key
-    drawer.priv = keys.pub[ind].priv
-    drawer.name = keys.pub[ind].name
+    drawer.pub = keys.data[ind].pub
+    drawer.priv = keys.data[ind].priv
+    drawer.name = keys.data[ind].name
     console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
@@ -103,7 +96,7 @@ function copyPrivateHandler(eventData){
     console.log(`"${drawer.name}" public key was copied`)
 }
 function shareHandler(eventData, request){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     if(request=='click'){
         let protocol = window.location.protocol
         let hostname = window.location.hostname
@@ -111,7 +104,7 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
+        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
@@ -123,16 +116,16 @@ function shareHandler(eventData, request){
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: btoa(keys.pub[ind].key)}})
+        router.push({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
         console.log(`redirect to "${eventData}" public key confirmed`)
     }
     
 }
 function deleteHandler(eventData){
-    let ind = keys.pub.findIndex(key=>key.name==eventData)
+    let ind = keys.data.findIndex(key=>key.name==eventData)
     ElMessageBox.confirm(`Are you sure to delete key "${eventData}"?`)
         .then(()=>{
-            keys.pub.splice(ind,1)
+            keys.data.splice(ind,1)
             keys.set()
             console.log(`"${eventData}" public key was deleted`)
         })
@@ -144,6 +137,73 @@ function deleteHandler(eventData){
                 })
             }   
         })
+}
+function exportHandler(){
+    saveFile('keys.json',JSON.stringify(keys.data))
+    console.log(`keys were exported to "keys.json"`)
+}
+function importHandler(eventData){
+    if(eventData.size>4*2**20){
+        ElMessage.error({message: 'File is larger than 4MB'})
+        return
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+        let obj = {}
+        try{
+            obj = JSON.parse(reader.result)
+        }catch(error){
+            ElMessage.error({message: "File isn't JSON"})
+            return
+        }
+        if(!Array.isArray(obj)){
+            ElMessage.error({message: "Incorrect JSON format: isn't array"})
+            return
+        }
+        let flag = false
+        obj.forEach(element => {
+            if(element.hasOwnProperty('date') &&
+                element.hasOwnProperty('name') &&
+                element.hasOwnProperty('pub') &&
+                element.hasOwnProperty('priv'))
+            {
+                if(keys.data.find(innerEl => {
+                    return innerEl.date === element.date &&
+                        innerEl.pub === element.pub &&
+                        innerEl.priv === element.priv;
+                }) === undefined){
+                    flag = true
+                    let buffer = {}
+                    if(keys.data.find(innerEl => innerEl.name == element.name) === undefined){
+                        buffer.name = element.name
+                    }else{
+                        let addNumber = 2;
+                        while(buffer.name === undefined){
+                            if(keys.data.find(innerEl => innerEl.name === element.name + `_${addNumber}`) === undefined){
+                                buffer.name = element.name + `_${addNumber}`
+                            }
+                            addNumber++
+                        }
+                    }
+                    buffer.date = element.date
+                    buffer.pub = element.pub
+                    buffer.priv = element.priv
+                    let ind = 0
+                    while(keys.data[ind] != undefined && keys.data[ind]?.date > buffer.date){
+                        ind++
+                    }
+                    keys.data.splice(ind,0,buffer)
+                }
+            }
+        })
+        if(!flag){
+            ElMessage({message: "Nothing has been added"})
+        }else{
+            keys.set()
+            console.log(`some keys were imported from "${eventData.name}"`)
+        }
+    }
+    reader.readAsText(eventData)
 }
 
 onMounted(() => {
@@ -224,10 +284,20 @@ addEventListener('resize', () => {
             >
                 Submit
             </el-button>
+            <el-button
+            @click="exportHandler"
+            >
+                Export
+            </el-button>
+            <el-button
+            @click="uploadFile(importHandler)"
+            >
+                Import
+            </el-button>
         </el-form-item>
-        <el-form-item v-if="keys.pub.length!=0">
+        <el-form-item v-if="keys.data.length!=0">
             <cTable
-            :data="keys.pub"
+            :data="keys.data"
             :loading="loading"
             :is-mobile="isMobile"
             @show="showHandler"

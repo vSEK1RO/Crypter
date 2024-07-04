@@ -22,9 +22,11 @@ function deleteHandler(event)
         <el-table-column
         label="Date"
         prop="date"
-        :width="isMobile?`70`:`120`"
+        width="110"
         >
-        
+            <template #default="scope">
+                {{ new Date(Date.parse(scope.row.date)).toLocaleString() }}
+            </template>
         </el-table-column>
         <el-table-column
         label="Name"

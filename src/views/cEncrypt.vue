@@ -13,20 +13,21 @@ const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: atob(route.query.publicKey || ""),
+    key: atob(route.query.publicKey || ''),
     message: '',
 })
 const loading = ref(false)
 const drawer = reactive({
     isActive: false,
     name: '',
-    media: '',
+    raw: '',
+    enc: '',
+    pub: '',
 })
 async function encryptHandler(eventData){
     let flag=false
-    if(encrypt.msg.findIndex(msg=>msg.name==form.name)!=-1){
+    if(encrypt.data.findIndex(msg=>msg.name==form.name)!=-1){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name already exists',
         })
         flag=true
@@ -34,7 +35,6 @@ async function encryptHandler(eventData){
     }
     if(form.name==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name must not be empty',
         })
         flag=true
@@ -42,7 +42,6 @@ async function encryptHandler(eventData){
     }
     if(form.key==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Public key must not be empty',
         })
         flag=true
@@ -50,42 +49,45 @@ async function encryptHandler(eventData){
     }
     if(form.message==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Msg must not be empty',
         })
         flag=true
     }
     if(flag)return
     loading.value = true
-    let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
-    loading.value = false
+    let encryptedMsg = ''
+    try{
+        encryptedMsg = toBinary(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
+    }catch(error){
+        ElMessage.error({message: error})
+        return
+    }
     let now = new Date()
-    const hours = now.getUTCHours().toString().padStart(2,'0');
-    const minutes = now.getUTCMinutes().toString().padStart(2,'0');
-    const month = now.getMonth().toString().padStart(2,'0');
-    const day = now.getDate().toString().padStart(2,'0');
-    encrypt.msg.push({
-        date: `${hours}:${minutes.toString().padStart(2,)} - ${day}.${month}`,
+    encrypt.data.unshift({
+        date: now,
         name: form.name,
         enc: encryptedMsg,
+        raw: form.message,
+        pub: form.key,
     })
     encrypt.set()
     console.log(encryptedMsg)
     console.log(`"${form.name}" msg was encrypted`)
-    
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function showHandler(eventData){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     drawer.isActive = true
-    drawer.media = encrypt.msg[ind].enc
-    drawer.name = encrypt.msg[ind].name
+    drawer.name = encrypt.data[ind].name
+    drawer.enc = encrypt.data[ind].enc
+    drawer.raw = encrypt.data[ind].raw
+    drawer.pub = encrypt.data[ind].pub
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.media)
+    navigator.clipboard.writeText(drawer.enc)
         .then(() => {
             ElMessage.success('Copied to clipboard')
         })
@@ -95,7 +97,7 @@ function copyHandler(eventData){
     console.log(`"${drawer.name}" encrypted msg was copied`)
 }
 function shareHandler(eventData, request){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     if(request=='click'){
         let protocol = window.location.protocol
         let hostname = window.location.hostname
@@ -103,7 +105,7 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.msg[ind].enc}})
+        let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
             .then(() => {
                 ElMessage.success('Copied to clipboard')
@@ -115,16 +117,16 @@ function shareHandler(eventData, request){
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'decrypt', query: {encryptedMsg: encrypt.msg[ind].enc}})
+        router.push({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         console.log(`redirect to "${eventData}" encrypted msg confirmed`)
     }
     
 }
 function deleteHandler(eventData){
-    let ind = encrypt.msg.findIndex(msg=>msg.name==eventData)
+    let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     ElMessageBox.confirm(`Are you sure to delete msg "${eventData}"?`)
         .then(()=>{
-            encrypt.msg.splice(ind,1)
+            encrypt.data.splice(ind,1)
             encrypt.set()
             console.log(`"${eventData}" encrypted msg was deleted`)
         })
@@ -158,7 +160,20 @@ addEventListener('resize', () => {
             <div class="drawer-media-wrapper">
                 <div class="drawer-media">
                     <el-text> 
-                        {{ drawer.media }}
+                        <h3>Raw</h3>
+                        {{ drawer.raw }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <el-text> 
+                        <h3>Encrypted</h3>
+                        {{ drawer.enc }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <el-text> 
+                        <h3>Public key</h3>
+                        {{ drawer.pub }}
                     </el-text>
                 </div>
             </div>
@@ -208,9 +223,9 @@ addEventListener('resize', () => {
                 Encrypt
             </el-button>
         </el-form-item>
-        <el-form-item v-if="encrypt.msg.length!=0">
+        <el-form-item v-if="encrypt.data.length!=0">
             <cTable
-            :data="encrypt.msg"
+            :data="encrypt.data"
             :loading="loading"
             :is-mobile="isMobile"
             @show="showHandler"
