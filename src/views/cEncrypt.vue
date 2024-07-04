@@ -63,7 +63,7 @@ async function encryptHandler(eventData){
         return
     }
     let now = new Date()
-    encrypt.data.push({
+    encrypt.data.unshift({
         date: now,
         name: form.name,
         enc: encryptedMsg,

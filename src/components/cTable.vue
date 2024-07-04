@@ -22,7 +22,7 @@ function deleteHandler(event)
         <el-table-column
         label="Date"
         prop="date"
-        width="100"
+        width="110"
         >
             <template #default="scope">
                 {{ new Date(Date.parse(scope.row.date)).toLocaleString() }}

@@ -122,13 +122,6 @@ addEventListener('resize', () => {
             </el-text>
         </el-form-item>
         <el-form-item>
-            <el-input
-            show-password
-            v-model="form.passphrase"
-            placeholder="passphrase"
-            ></el-input>
-        </el-form-item>
-        <el-form-item>
             <el-select
             autosize
             show-password
@@ -142,6 +135,13 @@ addEventListener('resize', () => {
                 :value="item.priv"
                 />
             </el-select>
+        </el-form-item>
+        <el-form-item>
+            <el-input
+            show-password
+            v-model="form.passphrase"
+            placeholder="passphrase"
+            ></el-input>
         </el-form-item>
         <el-form-item>
             <el-input

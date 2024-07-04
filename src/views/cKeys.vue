@@ -6,6 +6,8 @@ import { useRouter } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
+import { saveFile } from '@/composables/saveFile'
+import { uploadFile } from '@/composables/uploadFile'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -52,7 +54,7 @@ async function submitHandler(eventData){
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
     loading.value = false
     let now = new Date()
-    keys.data.push({
+    keys.data.unshift({
         date: now,
         name: form.name,
         pub: publicKey,
@@ -136,6 +138,70 @@ function deleteHandler(eventData){
             }   
         })
 }
+function exportHandler(){
+    saveFile('keys.json',JSON.stringify(keys.data))
+    console.log(`keys were exported to "keys.json"`)
+}
+function importHandler(eventData){
+    if(eventData.size>4*2**20){
+        ElMessage.error({message: 'File is larger than 4MB'})
+    }
+    const reader = new FileReader()
+    reader.onload = () => {
+        let obj = {}
+        try{
+            obj = JSON.parse(reader.result)
+        }catch(error){
+            ElMessage.error({message: "File isn't JSON"})
+        }
+        if(!Array.isArray(obj)){
+            ElMessage.error({message: "Incorrect JSON format: isn't array"})
+        }
+        let flag = false
+        obj.forEach(element => {
+            if(element.hasOwnProperty('date') &&
+                element.hasOwnProperty('name') &&
+                element.hasOwnProperty('pub') &&
+                element.hasOwnProperty('priv'))
+            {
+                if(keys.data.find(innerEl => {
+                    return innerEl.date === element.date &&
+                        innerEl.pub === element.pub &&
+                        innerEl.priv === element.priv;
+                }) === undefined){
+                    flag = true
+                    let buffer = {}
+                    if(keys.data.find(innerEl => innerEl.name == element.name) === undefined){
+                        buffer.name = element.name
+                    }else{
+                        let addNumber = 2;
+                        while(buffer.name === undefined){
+                            if(keys.data.find(innerEl => innerEl.name === element.name + `_${addNumber}`) === undefined){
+                                buffer.name = element.name + `_${addNumber}`
+                            }
+                            addNumber++
+                        }
+                    }
+                    buffer.date = element.date
+                    buffer.pub = element.pub
+                    buffer.priv = element.priv
+                    let ind = 0
+                    while(keys.data[ind] != undefined && keys.data[ind]?.date > buffer.date){
+                        ind++
+                    }
+                    keys.data.splice(ind,0,buffer)
+                }
+            }
+        })
+        if(!flag){
+            ElMessage({message: "Nothing has been added"})
+        }else{
+            keys.set()
+            console.log(`some keys were imported from "${eventData.name}"`)
+        }
+    }
+    reader.readAsText(eventData)
+}
 
 onMounted(() => {
     keys.get()
@@ -214,6 +280,16 @@ addEventListener('resize', () => {
             type="success"
             >
                 Submit
+            </el-button>
+            <el-button
+            @click="exportHandler"
+            >
+                Export
+            </el-button>
+            <el-button
+            @click="uploadFile(importHandler)"
+            >
+                Import
             </el-button>
         </el-form-item>
         <el-form-item v-if="keys.data.length!=0">
