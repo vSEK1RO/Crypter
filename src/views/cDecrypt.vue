@@ -5,6 +5,7 @@ import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
 import { toBinary } from '@/composables/toBinary'
+import { fromBinary } from '@/composables/fromBinary'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
@@ -55,9 +56,9 @@ async function decryptHandler(eventData){
             ElMessage.error('Passphrase incorrect')
             return
         }
-        let b64enc = atob(form.encrypted || '')
+        let b64enc = fromBinary(form.encrypted)
         let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
-        decryptedMsg = atob(privateKey.decrypt(b64enc, 'RSA-OAEP') || '')
+        decryptedMsg = fromBinary(privateKey.decrypt(b64enc, 'RSA-OAEP') || '')
     }catch(error){
         ElMessage.error({message: "Invalid encrypted message"})
         return

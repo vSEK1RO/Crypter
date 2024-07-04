@@ -57,7 +57,7 @@ async function encryptHandler(eventData){
     loading.value = true
     let encryptedMsg = ''
     try{
-        encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
+        encryptedMsg = toBinary(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
     }catch(error){
         ElMessage.error({message: error})
         return
