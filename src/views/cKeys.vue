@@ -26,7 +26,6 @@ async function submitHandler(eventData){
     let flag=false
     if(form.passphrase!=form.rpassphrase){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Passphrases do not match',
         })
         flag=true
@@ -34,7 +33,6 @@ async function submitHandler(eventData){
     }
     if(keys.data.findIndex(key=>key.name==form.name)!=-1){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name already exists',
         })
         flag=true
@@ -42,7 +40,6 @@ async function submitHandler(eventData){
     }
     if(form.name==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name must not be empty',
         })
         flag=true

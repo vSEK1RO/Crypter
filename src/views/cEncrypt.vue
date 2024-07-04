@@ -13,7 +13,7 @@ const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: atob(route.query.publicKey || ""),
+    key: atob(route.query.publicKey || ''),
     message: '',
 })
 const loading = ref(false)
@@ -26,7 +26,6 @@ async function encryptHandler(eventData){
     let flag=false
     if(encrypt.data.findIndex(msg=>msg.name==form.name)!=-1){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name already exists',
         })
         flag=true
@@ -34,7 +33,6 @@ async function encryptHandler(eventData){
     }
     if(form.name==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Name must not be empty',
         })
         flag=true
@@ -42,7 +40,6 @@ async function encryptHandler(eventData){
     }
     if(form.key==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Public key must not be empty',
         })
         flag=true
@@ -50,15 +47,19 @@ async function encryptHandler(eventData){
     }
     if(form.message==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Msg must not be empty',
         })
         flag=true
     }
     if(flag)return
     loading.value = true
-    let encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
-    loading.value = false
+    let encryptedMsg = ''
+    try{
+        encryptedMsg = btoa(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
+    }catch(error){
+        ElMessage.error({message: error})
+        return
+    }
     let now = new Date()
     encrypt.data.push({
         date: now,
@@ -68,7 +69,6 @@ async function encryptHandler(eventData){
     encrypt.set()
     console.log(encryptedMsg)
     console.log(`"${form.name}" msg was encrypted`)
-    
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

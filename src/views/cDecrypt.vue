@@ -4,7 +4,6 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
-import { fromBinary } from '@/composables/fromBinary'
 import { toBinary } from '@/composables/toBinary'
 
 const isMobile = ref(window.outerWidth < 900)
@@ -24,36 +23,45 @@ async function decryptHandler(eventData){
     let flag=false
     if(form.passphrase==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Passphrase must not be empty',
+        })
+        flag=true
+        await sleep(1)
+    }
+    if(form.privatekey==''){
+        ElMessage.error({
+            message: 'Private key must not be empty',
         })
         flag=true
         await sleep(1)
     }
     if(form.encrypted==''){
         ElMessage.error({
-            title: 'Invalid input',
             message: 'Encrypted message must not be empty',
         })
         flag=true
     }
     if(flag)return
     loading.value = true
-    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, toBinary(form.passphrase));
-    if(decryptedPrivateKey==null){
-        ElMessage.error('Passphrase incorrect')
+    let decryptedMsg = ''
+    try{
+        let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, toBinary(form.passphrase));
+        if(decryptedPrivateKey==null){
+            ElMessage.error('Passphrase incorrect')
+            return
+        }
+        let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
+        if(decryptedPrivateKeyPem==null){
+            ElMessage.error('Passphrase incorrect')
+            return
+        }
+        let b64enc = atob(form.encrypted || '')
+        let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
+        decryptedMsg = atob(privateKey.decrypt(b64enc, 'RSA-OAEP') || '')
+    }catch(error){
+        ElMessage.error({message: "Invalid encrypted message"})
+        return
     }
-    let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
-    if(decryptedPrivateKeyPem==null){
-        ElMessage.error('Passphrase incorrect')
-    }
-    let b64enc = ""
-    if(form.encrypted != null)
-    {
-        b64enc = atob(form.encrypted)
-    }
-    let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
-    let decryptedMsg = fromBinary(privateKey.decrypt(b64enc, 'RSA-OAEP'))
     loading.value = false
     drawer.media = decryptedMsg
     drawer.isActive = true
