@@ -19,8 +19,10 @@ const form = reactive({
 const loading = ref(false)
 const drawer = reactive({
     isActive: false,
+    name: '',
     raw: '',
-    media: '',
+    enc: '',
+    pub: '',
 })
 async function encryptHandler(eventData){
     let flag=false
@@ -66,6 +68,7 @@ async function encryptHandler(eventData){
         name: form.name,
         enc: encryptedMsg,
         raw: form.message,
+        pub: form.key,
     })
     encrypt.set()
     console.log(encryptedMsg)
@@ -77,12 +80,14 @@ function sleep(ms) {
 function showHandler(eventData){
     let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     drawer.isActive = true
-    drawer.media = encrypt.data[ind].enc
+    drawer.name = encrypt.data[ind].name
+    drawer.enc = encrypt.data[ind].enc
     drawer.raw = encrypt.data[ind].raw
+    drawer.pub = encrypt.data[ind].pub
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.media)
+    navigator.clipboard.writeText(drawer.enc)
         .then(() => {
             ElMessage.success('Copied to clipboard')
         })
@@ -154,15 +159,21 @@ addEventListener('resize', () => {
         <template #default>
             <div class="drawer-media-wrapper">
                 <div class="drawer-media">
-                    <h3>Raw:</h3>
                     <el-text> 
+                        <h3>Raw</h3>
                         {{ drawer.raw }}
                     </el-text>
                 </div>
                 <div class="drawer-media">
-                    <h3>Encrypted:</h3>
                     <el-text> 
-                        {{ drawer.media }}
+                        <h3>Encrypted</h3>
+                        {{ drawer.enc }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <el-text> 
+                        <h3>Public key</h3>
+                        {{ drawer.pub }}
                     </el-text>
                 </div>
             </div>
