@@ -17,7 +17,8 @@ export const useEncrypt = defineStore('encrypt', {
             if (obj?.data[0] !== undefined) {
                 if (obj.data[0].hasOwnProperty('date') &&
                     obj.data[0].hasOwnProperty('name') &&
-                    obj.data[0].hasOwnProperty('enc'))
+                    obj.data[0].hasOwnProperty('enc') &&
+                    obj.data[0].hasOwnProperty('raw'))
                 {
                     this.data = obj.data
                 }else{

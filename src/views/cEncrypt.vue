@@ -19,7 +19,7 @@ const form = reactive({
 const loading = ref(false)
 const drawer = reactive({
     isActive: false,
-    name: '',
+    raw: '',
     media: '',
 })
 async function encryptHandler(eventData){
@@ -65,6 +65,7 @@ async function encryptHandler(eventData){
         date: now,
         name: form.name,
         enc: encryptedMsg,
+        raw: form.message,
     })
     encrypt.set()
     console.log(encryptedMsg)
@@ -77,7 +78,7 @@ function showHandler(eventData){
     let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
     drawer.isActive = true
     drawer.media = encrypt.data[ind].enc
-    drawer.name = encrypt.data[ind].name
+    drawer.raw = encrypt.data[ind].raw
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
@@ -153,6 +154,13 @@ addEventListener('resize', () => {
         <template #default>
             <div class="drawer-media-wrapper">
                 <div class="drawer-media">
+                    <h3>Raw:</h3>
+                    <el-text> 
+                        {{ drawer.raw }}
+                    </el-text>
+                </div>
+                <div class="drawer-media">
+                    <h3>Encrypted:</h3>
                     <el-text> 
                         {{ drawer.media }}
                     </el-text>
