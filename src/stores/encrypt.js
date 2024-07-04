@@ -14,8 +14,15 @@ export const useEncrypt = defineStore('encrypt', {
             const obj = JSON.parse(
                 localStorage.getItem("encryptStore")
             )
-            if (obj != null) {
-                this.data = obj.data
+            if (obj?.data[0] !== undefined) {
+                if (obj.data[0].hasOwnProperty('date') &&
+                    obj.data[0].hasOwnProperty('name') &&
+                    obj.data[0].hasOwnProperty('enc'))
+                {
+                    this.data = obj.data
+                }else{
+                    this.data = []
+                }
             }
         }
     }

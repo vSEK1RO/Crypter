@@ -14,8 +14,16 @@ export const useKeys = defineStore('keys', {
             const obj = JSON.parse(
                 localStorage.getItem("keysStore")
             )
-            if (obj != null) {
-                this.data = obj.data
+            if (obj?.data[0] !== undefined) {
+                if (obj.data[0].hasOwnProperty('date') &&
+                    obj.data[0].hasOwnProperty('name') &&
+                    obj.data[0].hasOwnProperty('pub') &&
+                    obj.data[0].hasOwnProperty('priv'))
+                {
+                    this.data = obj.data
+                }else{
+                    this.data = []
+                }
             }
         }
     }
