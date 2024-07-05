@@ -43,7 +43,6 @@ async function decryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    loading.value = true
     let decryptedMsg = ''
     try{
         let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, toBinary(form.passphrase));
@@ -63,7 +62,6 @@ async function decryptHandler(eventData){
         ElMessage.error({message: "Invalid encrypted message"})
         return
     }
-    loading.value = false
     drawer.media = decryptedMsg
     drawer.isActive = true
 }
@@ -145,8 +143,6 @@ addEventListener('resize', () => {
         </el-form-item>
         <el-form-item>
             <el-input
-            autosize
-            type="textarea"
             v-model="form.encrypted"
             placeholder="encrypted message"
             ></el-input>

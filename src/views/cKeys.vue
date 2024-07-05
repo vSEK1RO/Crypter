@@ -48,11 +48,9 @@ async function submitHandler(eventData){
         await sleep(1)
     }
     if(flag)return
-    loading.value = true
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
     let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
-    loading.value = false
     let now = new Date()
     keys.data.unshift({
         date: now,

@@ -17,7 +17,7 @@ function deleteHandler(event)
 <template>
     <el-table
     :data="data"
-    :v-loading="loading"
+    v-loading="loading"
     >  
         <el-table-column
         label="Date"

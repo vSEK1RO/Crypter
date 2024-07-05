@@ -54,7 +54,6 @@ async function encryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    loading.value = true
     let encryptedMsg = ''
     try{
         encryptedMsg = toBinary(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
@@ -209,8 +208,6 @@ addEventListener('resize', () => {
         </el-form-item>
         <el-form-item>
             <el-input
-            autosize
-            type="textarea"
             v-model="form.key"
             placeholder="public key"
             ></el-input>
