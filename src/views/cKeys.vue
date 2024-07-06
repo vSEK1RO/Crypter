@@ -7,6 +7,8 @@ import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
 import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
+import { copyData } from '@/composables/copyData'
+import { copyLink } from '@/composables/copyLink'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -73,24 +75,10 @@ function showHandler(eventData){
     console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.pub)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" public key was copied`)
+    copyData(drawer.pub, drawer.name, 'public key')
 }
 function copyPrivateHandler(eventData){
-    navigator.clipboard.writeText(drawer.priv)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" public key was copied`)
+    copyData(drawer.priv, drawer.name, 'private key')
 }
 function shareHandler(eventData, request){
     let ind = keys.data.findIndex(key=>key.name==eventData)
@@ -102,14 +90,8 @@ function shareHandler(eventData, request){
             port='443'
         }
         let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
-        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
-            .then(() => {
-                ElMessage.success('Copied to clipboard')
-            })
-            .catch(err => {
-                ElMessage.error('Error during copying')
-            });
-        console.log(`link to "${drawer.name}" public key was copied`)
+        let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
+        copyLink(link, drawer.name, 'public key')
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){

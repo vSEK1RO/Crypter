@@ -5,6 +5,8 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
+import { copyLink } from '@/composables/copyLink'
+import { copyData } from '@/composables/copyData'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -90,14 +92,7 @@ function showHandler(eventData){
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.enc)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" encrypted msg was copied`)
+    copyData(drawer.enc, drawer.name, 'encrypted msg')
 }
 function shareHandler(eventData, request){
     let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
@@ -109,14 +104,8 @@ function shareHandler(eventData, request){
             port='443'
         }
         let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
-        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
-            .then(() => {
-                ElMessage.success('Copied to clipboard')
-            })
-            .catch(err => {
-                ElMessage.error('Error during copying')
-            });
-        console.log(`link to "${drawer.name}" encrypted msg was copied`)
+        let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
+        copyLink(link, drawer.name, 'encrypted msg')
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){

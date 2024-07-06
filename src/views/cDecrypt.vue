@@ -4,6 +4,7 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
+import { copyData } from '@/composables/copyData'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
@@ -72,14 +73,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.media)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" decrypted msg was copied`)
+    copyData(drawer.media, 'unnamed', 'decrypted msg')
 }
 
 onMounted(() => {
