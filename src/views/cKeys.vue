@@ -4,7 +4,6 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
 import forge from 'node-forge'
-import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
 import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
@@ -49,14 +48,14 @@ async function submitHandler(eventData){
     }
     if(flag)return
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
-    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
+    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, forge.util.encodeUtf8(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
     let now = new Date()
     keys.data.unshift({
         date: now,
-        name: form.name,
-        pub: publicKey,
-        priv: privateKey,
+        name: form.name.trim(),
+        pub: publicKey.trim(),
+        priv: privateKey.trim(),
     })
     keys.set()
     console.log(`"${form.name}" keypair was created`)

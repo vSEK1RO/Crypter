@@ -4,7 +4,6 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
-import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
 
 const isMobile = ref(window.outerWidth < 900)
@@ -54,9 +53,15 @@ async function encryptHandler(eventData){
         flag=true
     }
     if(flag)return
+    let b64message = forge.util.encodeUtf8(form.message)
     let encryptedMsg = ''
     try{
-        encryptedMsg = toBinary(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
+        while(b64message.length > 0){
+            const buffer = b64message.slice(0,32)
+            b64message = b64message.slice(32)
+            const encBuffer = forge.pki.publicKeyFromPem(form.key).encrypt(buffer, 'RSA-OAEP')
+            encryptedMsg += encBuffer
+        }
     }catch(error){
         ElMessage.error({message: error})
         return
@@ -64,13 +69,12 @@ async function encryptHandler(eventData){
     let now = new Date()
     encrypt.data.unshift({
         date: now,
-        name: form.name,
-        enc: encryptedMsg,
+        name: form.name.trim(),
+        enc: forge.util.encode64(encryptedMsg),
         raw: form.message,
-        pub: form.key,
+        pub: form.key.trim(),
     })
     encrypt.set()
-    console.log(encryptedMsg)
     console.log(`"${form.name}" msg was encrypted`)
 }
 function sleep(ms) {
