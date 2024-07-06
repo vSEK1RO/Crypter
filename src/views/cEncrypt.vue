@@ -4,8 +4,9 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
-import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
+import { copyLink } from '@/composables/copyLink'
+import { copyData } from '@/composables/copyData'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -13,7 +14,7 @@ const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: atob(route.query.publicKey || ''),
+    key: forge.util.decode64(route.query.publicKey || ''),
     message: '',
 })
 const loading = ref(false)
@@ -54,10 +55,15 @@ async function encryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    loading.value = true
+    let b64message = forge.util.encodeUtf8(form.message)
     let encryptedMsg = ''
     try{
-        encryptedMsg = toBinary(forge.pki.publicKeyFromPem(form.key).encrypt(toBinary(form.message), 'RSA-OAEP'));
+        while(b64message.length > 0){
+            const buffer = b64message.slice(0,32)
+            b64message = b64message.slice(32)
+            const encBuffer = forge.pki.publicKeyFromPem(form.key).encrypt(buffer, 'RSA-OAEP')
+            encryptedMsg += encBuffer
+        }
     }catch(error){
         ElMessage.error({message: error})
         return
@@ -65,13 +71,12 @@ async function encryptHandler(eventData){
     let now = new Date()
     encrypt.data.unshift({
         date: now,
-        name: form.name,
-        enc: encryptedMsg,
+        name: form.name.trim(),
+        enc: forge.util.encode64(encryptedMsg),
         raw: form.message,
-        pub: form.key,
+        pub: form.key.trim(),
     })
     encrypt.set()
-    console.log(encryptedMsg)
     console.log(`"${form.name}" msg was encrypted`)
 }
 function sleep(ms) {
@@ -87,14 +92,7 @@ function showHandler(eventData){
     console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.enc)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" encrypted msg was copied`)
+    copyData(drawer.enc, drawer.name, 'encrypted msg')
 }
 function shareHandler(eventData, request){
     let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
@@ -106,14 +104,8 @@ function shareHandler(eventData, request){
             port='443'
         }
         let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
-        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
-            .then(() => {
-                ElMessage.success('Copied to clipboard')
-            })
-            .catch(err => {
-                ElMessage.error('Error during copying')
-            });
-        console.log(`link to "${drawer.name}" encrypted msg was copied`)
+        let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
+        copyLink(link, drawer.name, 'encrypted msg')
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){
@@ -209,8 +201,6 @@ addEventListener('resize', () => {
         </el-form-item>
         <el-form-item>
             <el-input
-            autosize
-            type="textarea"
             v-model="form.key"
             placeholder="public key"
             ></el-input>

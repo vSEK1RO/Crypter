@@ -4,8 +4,7 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
-import { toBinary } from '@/composables/toBinary'
-import { fromBinary } from '@/composables/fromBinary'
+import { copyData } from '@/composables/copyData'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
@@ -43,42 +42,38 @@ async function decryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    loading.value = true
-    let decryptedMsg = ''
-    try{
-        let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, toBinary(form.passphrase));
-        if(decryptedPrivateKey==null){
-            ElMessage.error('Passphrase incorrect')
-            return
-        }
-        let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
-        if(decryptedPrivateKeyPem==null){
-            ElMessage.error('Passphrase incorrect')
-            return
-        }
-        let b64enc = fromBinary(form.encrypted)
-        let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
-        decryptedMsg = fromBinary(privateKey.decrypt(b64enc, 'RSA-OAEP') || '')
-    }catch(error){
-        ElMessage.error({message: "Invalid encrypted message"})
+    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, forge.util.encodeUtf8(form.passphrase));
+    if(decryptedPrivateKey==null){
+        ElMessage.error('Passphrase incorrect')
         return
     }
-    loading.value = false
-    drawer.media = decryptedMsg
+    let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
+    if(decryptedPrivateKeyPem==null){
+        ElMessage.error('Passphrase incorrect')
+        return
+    }
+    let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
+    let rawEnc = forge.util.decode64(form.encrypted)
+    const byteSize = privateKey.n.bitLength()/8;
+    let decryptedMsg = ''
+    try{
+        while(rawEnc.length > 0){
+            const buffer = rawEnc.slice(0,byteSize)
+            rawEnc = rawEnc.slice(byteSize)
+            decryptedMsg += privateKey.decrypt(buffer, 'RSA-OAEP')
+        }
+    }catch(error){
+        ElMessage.error({message: 'Invalid encrypted message'})
+        return
+    }
+    drawer.media = forge.util.decodeUtf8(decryptedMsg)
     drawer.isActive = true
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.media)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" decrypted msg was copied`)
+    copyData(drawer.media, 'unnamed', 'decrypted msg')
 }
 
 onMounted(() => {
@@ -145,8 +140,6 @@ addEventListener('resize', () => {
         </el-form-item>
         <el-form-item>
             <el-input
-            autosize
-            type="textarea"
             v-model="form.encrypted"
             placeholder="encrypted message"
             ></el-input>

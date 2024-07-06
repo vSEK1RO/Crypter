@@ -4,10 +4,11 @@ import { reactive, ref, onMounted } from 'vue'
 import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
 import forge from 'node-forge'
-import { toBinary } from '@/composables/toBinary'
 import cTable from '@/components/cTable.vue'
 import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
+import { copyData } from '@/composables/copyData'
+import { copyLink } from '@/composables/copyLink'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -48,17 +49,15 @@ async function submitHandler(eventData){
         await sleep(1)
     }
     if(flag)return
-    loading.value = true
     let rsaKeyPair = forge.pki.rsa.generateKeyPair({bits: 1024})
-    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, toBinary(form.passphrase))
+    let privateKey = forge.pki.encryptRsaPrivateKey(rsaKeyPair.privateKey, forge.util.encodeUtf8(form.passphrase))
     let publicKey = forge.pki.publicKeyToPem(rsaKeyPair.publicKey)
-    loading.value = false
     let now = new Date()
     keys.data.unshift({
         date: now,
-        name: form.name,
-        pub: publicKey,
-        priv: privateKey,
+        name: form.name.trim(),
+        pub: publicKey.trim(),
+        priv: privateKey.trim(),
     })
     keys.set()
     console.log(`"${form.name}" keypair was created`)
@@ -76,24 +75,10 @@ function showHandler(eventData){
     console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
-    navigator.clipboard.writeText(drawer.pub)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" public key was copied`)
+    copyData(drawer.pub, drawer.name, 'public key')
 }
 function copyPrivateHandler(eventData){
-    navigator.clipboard.writeText(drawer.priv)
-        .then(() => {
-            ElMessage.success('Copied to clipboard')
-        })
-        .catch(err => {
-            ElMessage.error('Error during copying')
-        });
-    console.log(`"${drawer.name}" public key was copied`)
+    copyData(drawer.priv, drawer.name, 'private key')
 }
 function shareHandler(eventData, request){
     let ind = keys.data.findIndex(key=>key.name==eventData)
@@ -104,19 +89,13 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
-        navigator.clipboard.writeText(`${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`)
-            .then(() => {
-                ElMessage.success('Copied to clipboard')
-            })
-            .catch(err => {
-                ElMessage.error('Error during copying')
-            });
-        console.log(`link to "${drawer.name}" public key was copied`)
+        let {href} = router.resolve({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
+        let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
+        copyLink(link, drawer.name, 'public key')
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
+        router.push({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
         console.log(`redirect to "${eventData}" public key confirmed`)
     }
     

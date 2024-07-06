@@ -17,7 +17,7 @@ function deleteHandler(event)
 <template>
     <el-table
     :data="data"
-    :v-loading="loading"
+    v-loading="loading"
     >  
         <el-table-column
         label="Date"
@@ -56,7 +56,7 @@ function deleteHandler(event)
                     cancel-button-text="No"
                     @cancel="shareHandler(scope.row.name, 'cancel')"
                     @confirm="shareHandler(scope.row.name, 'confirm')"
-                    title="Link copied. Do you want to be redirected?"
+                    title="Do you want to be redirected?"
                     >
                         <template #reference>
                             <el-button
