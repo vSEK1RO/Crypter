@@ -9,6 +9,7 @@ import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
 import { copyData } from '@/composables/copyData'
 import { copyLink } from '@/composables/copyLink'
+import { hideOverflow } from '@/composables/hideOverflow'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -93,10 +94,10 @@ function shareHandler(eventData, request){
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
         copyLink(link, drawer.name, 'public key')
     }else if(request=='cancel'){
-        console.log(`redirect to "${eventData}" public key cancelled`)
+        console.log(`download "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
-        console.log(`redirect to "${eventData}" public key confirmed`)
+        saveFile(`${eventData}.pub`, keys.data[ind].pub)
+        console.log(`download "${eventData}" public key confirmed`)
     }
     
 }
@@ -205,12 +206,12 @@ addEventListener('resize', () => {
             <div class="drawer-media-wrapper">
                 <div class="drawer-media">
                     <el-text> 
-                        {{ drawer.pub }}
+                        {{ hideOverflow(drawer.pub, 1024) }}
                     </el-text>
                 </div>
                 <div class="drawer-media">
                     <el-text> 
-                        {{ drawer.priv }}   
+                        {{ hideOverflow(drawer.priv, 1024) }}   
                     </el-text>
                 </div>
             </div>

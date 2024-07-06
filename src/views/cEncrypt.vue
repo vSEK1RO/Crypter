@@ -7,6 +7,8 @@ import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
 import { copyLink } from '@/composables/copyLink'
 import { copyData } from '@/composables/copyData'
+import { saveFile } from '@/composables/saveFile'
+import { hideOverflow } from '@/composables/hideOverflow'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -107,10 +109,10 @@ function shareHandler(eventData, request){
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
         copyLink(link, drawer.name, 'encrypted msg')
     }else if(request=='cancel'){
-        console.log(`redirect to "${eventData}" encrypted msg cancelled`)
+        console.log(`download "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
-        console.log(`redirect to "${eventData}" encrypted msg confirmed`)
+        saveFile(`${eventData}.enc`, encrypt.data[ind].enc)
+        console.log(`download "${eventData}" encrypted msg confirmed`)
     }
     
 }
@@ -153,19 +155,19 @@ addEventListener('resize', () => {
                 <div class="drawer-media">
                     <el-text> 
                         <h3>Raw</h3>
-                        {{ drawer.raw }}
+                        {{ hideOverflow(drawer.raw, 1024) }}
                     </el-text>
                 </div>
                 <div class="drawer-media">
                     <el-text> 
                         <h3>Encrypted</h3>
-                        {{ drawer.enc }}
+                        {{ hideOverflow(drawer.enc, 1024) }}
                     </el-text>
                 </div>
                 <div class="drawer-media">
                     <el-text> 
                         <h3>Public key</h3>
-                        {{ drawer.pub }}
+                        {{ hideOverflow(drawer.pub, 1024) }}
                     </el-text>
                 </div>
             </div>

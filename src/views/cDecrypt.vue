@@ -5,6 +5,7 @@ import { ElMessage} from 'element-plus'
 import { useRoute } from 'vue-router'
 import forge from 'node-forge'
 import { copyData } from '@/composables/copyData'
+import { hideOverflow } from '@/composables/hideOverflow'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
@@ -96,7 +97,7 @@ addEventListener('resize', () => {
             <div class="drawer-media-wrapper">
                 <div class="drawer-media">
                     <el-text> 
-                        {{ drawer.media }}
+                        {{ hideOverflow(drawer.media, 1024) }}
                     </el-text>
                 </div>
             </div>
