@@ -14,7 +14,7 @@ const route = useRoute()
 const encrypt = useEncrypt()
 const form = reactive({
     name: '',
-    key: atob(route.query.publicKey || ''),
+    key: forge.util.decode64(route.query.publicKey || ''),
     message: '',
 })
 const loading = ref(false)

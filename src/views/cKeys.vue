@@ -89,13 +89,13 @@ function shareHandler(eventData, request){
         if(port==''){
             port='443'
         }
-        let {href} = router.resolve({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
+        let {href} = router.resolve({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
         copyLink(link, drawer.name, 'public key')
     }else if(request=='cancel'){
         console.log(`redirect to "${eventData}" public key cancelled`)
     }else if(request=='confirm'){
-        router.push({path: 'encrypt', query: {publicKey: btoa(keys.data[ind].pub)}})
+        router.push({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
         console.log(`redirect to "${eventData}" public key confirmed`)
     }
     
