@@ -6,6 +6,7 @@ import { useRoute } from 'vue-router'
 import forge from 'node-forge'
 import { copyData } from '@/composables/copyData'
 import { hideOverflow } from '@/composables/hideOverflow'
+import { Message } from '@/composables/Message'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
@@ -43,31 +44,16 @@ async function decryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    let decryptedPrivateKey = forge.pki.decryptRsaPrivateKey(form.privatekey, forge.util.encodeUtf8(form.passphrase));
-    if(decryptedPrivateKey==null){
-        ElMessage.error('Passphrase incorrect')
-        return
-    }
-    let decryptedPrivateKeyPem = forge.pki.privateKeyToPem(decryptedPrivateKey)
-    if(decryptedPrivateKeyPem==null){
-        ElMessage.error('Passphrase incorrect')
-        return
-    }
-    let privateKey = forge.pki.privateKeyFromPem(decryptedPrivateKeyPem)
-    let rawEnc = forge.util.decode64(form.encrypted)
-    const byteSize = privateKey.n.bitLength()/8;
-    let decryptedMsg = ''
+    let message = new Message({
+        encoded64: form.encrypted
+    })
     try{
-        while(rawEnc.length > 0){
-            const buffer = rawEnc.slice(0,byteSize)
-            rawEnc = rawEnc.slice(byteSize)
-            decryptedMsg += privateKey.decrypt(buffer, 'RSA-OAEP')
-        }
+        message.decrypt(form.privatekey, forge.util.encodeUtf8(form.passphrase))
     }catch(error){
-        ElMessage.error({message: 'Invalid encrypted message'})
+        ElMessage.error({message: error})
         return
     }
-    drawer.media = forge.util.decodeUtf8(decryptedMsg)
+    drawer.media = message.data
     drawer.isActive = true
 }
 function sleep(ms) {

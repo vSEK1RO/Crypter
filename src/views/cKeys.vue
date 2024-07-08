@@ -92,7 +92,7 @@ function shareHandler(eventData, request){
         }
         let {href} = router.resolve({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
-        copyLink(link, drawer.name, 'public key')
+        copyLink(link, eventData, 'public key')
     }else if(request=='cancel'){
         console.log(`download "${eventData}" public key cancelled`)
     }else if(request=='confirm'){

@@ -9,6 +9,7 @@ import { copyLink } from '@/composables/copyLink'
 import { copyData } from '@/composables/copyData'
 import { saveFile } from '@/composables/saveFile'
 import { hideOverflow } from '@/composables/hideOverflow'
+import { Message } from '@/composables/Message'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -57,15 +58,13 @@ async function encryptHandler(eventData){
         flag=true
     }
     if(flag)return
-    let b64message = forge.util.encodeUtf8(form.message)
-    let encryptedMsg = ''
+    let message = new Message({
+        data: form.message,
+        name: form.name,
+        type: 'text'
+    })
     try{
-        while(b64message.length > 0){
-            const buffer = b64message.slice(0,32)
-            b64message = b64message.slice(32)
-            const encBuffer = forge.pki.publicKeyFromPem(form.key).encrypt(buffer, 'RSA-OAEP')
-            encryptedMsg += encBuffer
-        }
+        message.encrypt(form.key)
     }catch(error){
         ElMessage.error({message: error})
         return
@@ -74,12 +73,12 @@ async function encryptHandler(eventData){
     encrypt.data.unshift({
         date: now,
         name: form.name.trim(),
-        enc: forge.util.encode64(encryptedMsg),
+        enc: message.encode64(),
         raw: form.message,
         pub: form.key.trim(),
     })
     encrypt.set()
-    console.log(`"${form.name}" msg was encrypted`)
+    console.log(`"${message.name}" msg was encrypted`)
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -107,7 +106,7 @@ function shareHandler(eventData, request){
         }
         let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
-        copyLink(link, drawer.name, 'encrypted msg')
+        copyLink(link, eventData, 'encrypted msg')
     }else if(request=='cancel'){
         console.log(`download "${eventData}" encrypted msg cancelled`)
     }else if(request=='confirm'){
