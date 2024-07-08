@@ -7,12 +7,15 @@ import forge from 'node-forge'
 import { copyData } from '@/composables/copyData'
 import { hideOverflow } from '@/composables/hideOverflow'
 import { Message } from '@/composables/Message'
+import cTextOrFile from '@/components/cTextOrFile.vue'
+import { saveFile } from '@/composables/saveFile'
 
 const isMobile = ref(window.outerWidth < 900)
 const keys = useKeys()
 const route = useRoute()
 const drawer = reactive({
     isActive: false,
+    name: '',
     media: '',
 })
 const form = reactive({
@@ -53,14 +56,19 @@ async function decryptHandler(eventData){
         ElMessage.error({message: error})
         return
     }
-    drawer.media = message.data
-    drawer.isActive = true
+    if(message.type == 'text'){
+        drawer.media = message.data
+        drawer.name = message.name
+        drawer.isActive = true
+    }else if(message.type == 'file'){
+        saveFile(message.name, message.data)
+    }
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function copyHandler(eventData){
-    copyData(drawer.media, 'unnamed', 'decrypted msg')
+    copyData(drawer.media, drawer.name, 'decrypted msg')
 }
 
 onMounted(() => {
@@ -126,10 +134,11 @@ addEventListener('resize', () => {
             ></el-input>
         </el-form-item>
         <el-form-item>
-            <el-input
-            v-model="form.encrypted"
+            <cTextOrFile
+            :is-mobile="isMobile"
             placeholder="encrypted message"
-            ></el-input>
+            v-model="form.encrypted"
+            />
         </el-form-item>
         <el-form-item>
             <el-button

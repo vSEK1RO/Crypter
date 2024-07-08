@@ -5,6 +5,7 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
+import cTextOrFile from '@/components/cTextOrFile.vue'
 import { copyLink } from '@/composables/copyLink'
 import { copyData } from '@/composables/copyData'
 import { saveFile } from '@/composables/saveFile'
@@ -19,6 +20,8 @@ const form = reactive({
     name: '',
     key: forge.util.decode64(route.query.publicKey || ''),
     message: '',
+    type: 'text',
+    fileName: '',
 })
 const loading = ref(false)
 const drawer = reactive({
@@ -60,8 +63,8 @@ async function encryptHandler(eventData){
     if(flag)return
     let message = new Message({
         data: form.message,
-        name: form.name,
-        type: 'text'
+        name: form.type == 'file'?form.fileName:form.name,
+        type: form.type,
     })
     try{
         message.encrypt(form.key)
@@ -193,18 +196,22 @@ addEventListener('resize', () => {
             ></el-input>
         </el-form-item>
         <el-form-item>
-            <el-input
-            autosize
-            type="textarea"
-            v-model="form.message"
+            <cTextOrFile
+            :is-mobile="isMobile"
+            :textarea="true"
+            :limit="2**20"
             placeholder="message"
-            ></el-input>
+            v-model:type="form.type"
+            v-model:name="form.fileName"
+            v-model="form.message"
+            />
         </el-form-item>
         <el-form-item>
-            <el-input
-            v-model="form.key"
+            <cTextOrFile
+            :is-mobile="isMobile"
             placeholder="public key"
-            ></el-input>
+            v-model="form.key"
+            />
         </el-form-item>
         <el-form-item>
             <el-button

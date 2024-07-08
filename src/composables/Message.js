@@ -30,8 +30,11 @@ export class Message{
             data: this.data
         }
     }
+    toString(){
+        return JSON.stringify(this.obj())
+    }
     encode64(){
-        return forge.util.encode64(JSON.stringify(this.obj()))
+        return forge.util.encode64(this.toString())
     }
     encrypt(pubKeyPem){
         let b64message = forge.util.encodeUtf8(this.data)
