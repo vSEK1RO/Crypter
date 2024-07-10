@@ -46,7 +46,6 @@ function uploadHandler(eventData){
         fileUploaded.value = true
     }
     reader.readAsText(eventData)
-    console.log(`${props.placeholder} imported from "${eventData.name}"`)
 }
 function deleteHandler(){
     model.value = buffer.value

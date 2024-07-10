@@ -1,7 +1,7 @@
 import forge from 'node-forge'
 
 export class Message{
-    constructor(options){
+    constructor(options = {}){
         if(options.hasOwnProperty('name') &&
             options.hasOwnProperty('type') &&
             options.hasOwnProperty('data')
@@ -37,12 +37,13 @@ export class Message{
         return forge.util.encode64(this.toString())
     }
     encrypt(pubKeyPem){
+        const pubKey = forge.pki.publicKeyFromPem(pubKeyPem)
         let b64message = forge.util.encodeUtf8(this.data)
         let encryptedMsg = ''
         while(b64message.length > 0){
-            const buffer = b64message.slice(0,32)
-            b64message = b64message.slice(32)
-            const encBuffer = forge.pki.publicKeyFromPem(pubKeyPem).encrypt(buffer, 'RSA-OAEP')
+            const buffer = b64message.slice(0,pubKey.n.bitLength()/8-11)
+            b64message = b64message.slice(pubKey.n.bitLength()/8-11)
+            const encBuffer = pubKey.encrypt(buffer, 'RSAES-PKCS1-v1_5')
             encryptedMsg += encBuffer
         }
         this.data = encryptedMsg
@@ -64,7 +65,7 @@ export class Message{
             while(rawEnc.length > 0){
                 const buffer = rawEnc.slice(0,byteSize)
                 rawEnc = rawEnc.slice(byteSize)
-                decryptedMsg += privateKey.decrypt(buffer, 'RSA-OAEP')
+                decryptedMsg += privateKey.decrypt(buffer, 'RSAES-PKCS1-v1_5')
             }
         }catch(error){
             throw error

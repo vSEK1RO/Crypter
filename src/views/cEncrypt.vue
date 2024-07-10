@@ -81,7 +81,6 @@ async function encryptHandler(eventData){
         pub: form.key.trim(),
     })
     encrypt.set()
-    console.log(`"${message.name}" msg was encrypted`)
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -93,10 +92,9 @@ function showHandler(eventData){
     drawer.enc = encrypt.data[ind].enc
     drawer.raw = encrypt.data[ind].raw
     drawer.pub = encrypt.data[ind].pub
-    console.log(`"${eventData}" encrypted msg was shown`)
 }
 function copyHandler(eventData){
-    copyData(drawer.enc, drawer.name, 'encrypted msg')
+    copyData(drawer.enc)
 }
 function shareHandler(eventData, request){
     let ind = encrypt.data.findIndex(msg=>msg.name==eventData)
@@ -109,12 +107,9 @@ function shareHandler(eventData, request){
         }
         let {href} = router.resolve({path: 'decrypt', query: {encryptedMsg: encrypt.data[ind].enc}})
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
-        copyLink(link, eventData, 'encrypted msg')
-    }else if(request=='cancel'){
-        console.log(`download "${eventData}" encrypted msg cancelled`)
+        copyLink(link)
     }else if(request=='confirm'){
         saveFile(`${eventData}.enc`, encrypt.data[ind].enc)
-        console.log(`download "${eventData}" encrypted msg confirmed`)
     }
     
 }
@@ -124,7 +119,6 @@ function deleteHandler(eventData){
         .then(()=>{
             encrypt.data.splice(ind,1)
             encrypt.set()
-            console.log(`"${eventData}" encrypted msg was deleted`)
         })
         .catch((err)=>{
             if(err!='cancel'){

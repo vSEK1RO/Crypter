@@ -61,8 +61,6 @@ async function submitHandler(eventData){
         priv: privateKey.trim(),
     })
     keys.set()
-    console.log(`"${form.name}" keypair was created`)
-        
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -73,13 +71,12 @@ function showHandler(eventData){
     drawer.pub = keys.data[ind].pub
     drawer.priv = keys.data[ind].priv
     drawer.name = keys.data[ind].name
-    console.log(`"${eventData}" public key was shown`)
 }
 function copyHandler(eventData){
-    copyData(drawer.pub, drawer.name, 'public key')
+    copyData(drawer.pub)
 }
 function copyPrivateHandler(eventData){
-    copyData(drawer.priv, drawer.name, 'private key')
+    copyData(drawer.priv)
 }
 function shareHandler(eventData, request){
     let ind = keys.data.findIndex(key=>key.name==eventData)
@@ -92,12 +89,9 @@ function shareHandler(eventData, request){
         }
         let {href} = router.resolve({path: 'encrypt', query: {publicKey: forge.util.encode64(keys.data[ind].pub)}})
         let link = `${protocol}//${hostname}:${port}${import.meta.env.BASE_URL}${href}`
-        copyLink(link, eventData, 'public key')
-    }else if(request=='cancel'){
-        console.log(`download "${eventData}" public key cancelled`)
+        copyLink(link)
     }else if(request=='confirm'){
         saveFile(`${eventData}.pub`, keys.data[ind].pub)
-        console.log(`download "${eventData}" public key confirmed`)
     }
     
 }
@@ -107,12 +101,10 @@ function deleteHandler(eventData){
         .then(()=>{
             keys.data.splice(ind,1)
             keys.set()
-            console.log(`"${eventData}" public key was deleted`)
         })
         .catch((err)=>{
             if(err!='cancel'){
                 ElNotification.error({
-                    title: 'Error',
                     message: `deleteHandler(${eventData})\n`,
                 })
             }   
@@ -120,7 +112,6 @@ function deleteHandler(eventData){
 }
 function exportHandler(){
     saveFile('keys.json',JSON.stringify(keys.data))
-    console.log(`keys were exported to "keys.json"`)
 }
 function importHandler(eventData){
     if(eventData.size>4*2**20){
@@ -180,7 +171,6 @@ function importHandler(eventData){
             ElMessage({message: "Nothing has been added"})
         }else{
             keys.set()
-            console.log(`some keys were imported from "${eventData.name}"`)
         }
     }
     reader.readAsText(eventData)

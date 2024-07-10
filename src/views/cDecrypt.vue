@@ -68,7 +68,7 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 function copyHandler(eventData){
-    copyData(drawer.media, drawer.name, 'decrypted msg')
+    copyData(drawer.media)
 }
 
 onMounted(() => {

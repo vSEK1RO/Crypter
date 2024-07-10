@@ -1,6 +1,6 @@
 import { ElMessage } from "element-plus"
 
-export function copyData(data, name, msg){
+export function copyData(data){
     try{
         navigator.clipboard.writeText(data)
     }catch(error){
@@ -9,5 +9,4 @@ export function copyData(data, name, msg){
         return
     }
     ElMessage.success('Copied to clipboard')
-    console.log(`"${name}" ${msg} was copied`)
 }
