@@ -5,12 +5,14 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter } from 'vue-router'
 import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
+import MyWorker from '@/workers/generate?worker'
 import { Keypair } from '@/composables/Keypair'
 import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
 import { copyData } from '@/composables/copyData'
 import { copyLink } from '@/composables/copyLink'
 import { hideOverflow } from '@/composables/hideOverflow'
+import { useLoading } from '@/stores/loading'
 
 const isMobile = ref(window.outerWidth < 900)
 const router = useRouter()
@@ -20,7 +22,7 @@ const form = reactive({
     passphrase: '',
     rpassphrase: '',
 })
-const loading = ref(false)
+const loading = useLoading()
 const drawer = reactive({
     isActive: false,
     name: '',
@@ -51,19 +53,24 @@ async function submitHandler(eventData){
         await sleep(1)
     }
     if(flag)return
-    const keypair = new Keypair()
-    keypair.generate({
-        passphrase: form.passphrase,
-        bits: 1024
+    const worker = new MyWorker()
+    loading.data.keys = true
+    worker.postMessage({
+        bits: 2048,
+        passphrase: form.passphrase
     })
+    worker.onmessage = workerHandler
+}
+function workerHandler(event){
     let now = new Date()
     keys.data.unshift({
         date: now,
         name: form.name.trim(),
-        pub: keypair.pub.trim(),
-        priv: keypair.priv.trim(),
+        pub: event.data.pub.trim(),
+        priv: event.data.priv.trim(),
     })
     keys.set()
+    loading.data.keys = false
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -224,7 +231,9 @@ addEventListener('resize', () => {
             </el-button>
         </template>
     </el-drawer>
-    <el-form>
+    <el-form
+    v-loading="loading.data.keys"
+    >
         <el-form-item>
             <el-text>
                 <h2>Generate keypair</h2>
@@ -271,7 +280,6 @@ addEventListener('resize', () => {
         <el-form-item v-if="keys.data.length!=0">
             <cTable
             :data="keys.data"
-            :loading="loading"
             :is-mobile="isMobile"
             @show="showHandler"
             @share="shareHandler"
