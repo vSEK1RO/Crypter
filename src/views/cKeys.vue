@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router'
 import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
 import MyWorker from '@/workers/generate?worker'
-import { Keypair } from '@/composables/Keypair'
+import ReadFileWorker from '@/workers/readFile?worker'
 import { saveFile } from '@/composables/saveFile'
 import { uploadFile } from '@/composables/uploadFile'
 import { copyData } from '@/composables/copyData'
@@ -55,11 +55,11 @@ async function submitHandler(eventData){
     if(flag)return
     const worker = new MyWorker()
     loading.data.keys = true
+    worker.onmessage = workerHandler
     worker.postMessage({
         bits: 2048,
         passphrase: form.passphrase
     })
-    worker.onmessage = workerHandler
 }
 function workerHandler(event){
     let now = new Date()
@@ -123,22 +123,28 @@ function deleteHandler(eventData){
 function exportHandler(){
     saveFile('keys.json',JSON.stringify(keys.data))
 }
-function importHandler(eventData){
-    if(eventData.size>4*2**20){
-        ElMessage.error({message: 'File is larger than 4MB'})
-        return
-    }
-    const reader = new FileReader()
-    reader.onload = () => {
+function importHandler(event){
+    const worker = new ReadFileWorker()
+    loading.data.keys = true
+    worker.onmessage = readFileWorkerHandler
+    worker.postMessage({
+        file: event,
+        size: 4*2**20,
+    })
+}
+function readFileWorkerHandler(event){
+    if(event.data.status == 'loaded'){
         let obj = {}
         try{
-            obj = JSON.parse(reader.result)
+            obj = JSON.parse(event.data.data)
         }catch(error){
             ElMessage.error({message: "File isn't JSON"})
+            loading.data.keys = false
             return
         }
         if(!Array.isArray(obj)){
             ElMessage.error({message: "Incorrect JSON format: isn't array"})
+            loading.data.keys = false
             return
         }
         let flag = false
@@ -182,8 +188,11 @@ function importHandler(eventData){
         }else{
             keys.set()
         }
+        loading.data.keys = false
+    }else if(event.data.status == 'sizeError'){
+        ElMessage.error(event.data.data)
+        loading.data.keys = false
     }
-    reader.readAsText(eventData)
 }
 
 onMounted(() => {

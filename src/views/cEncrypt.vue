@@ -193,7 +193,6 @@ addEventListener('resize', () => {
             <cTextOrFile
             :is-mobile="isMobile"
             :textarea="true"
-            :limit="2**20"
             placeholder="message"
             v-model:type="form.type"
             v-model:name="form.fileName"
@@ -202,6 +201,7 @@ addEventListener('resize', () => {
         </el-form-item>
         <el-form-item>
             <cTextOrFile
+            :limit="2**20"
             :is-mobile="isMobile"
             placeholder="public key"
             v-model="form.key"
