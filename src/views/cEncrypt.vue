@@ -5,6 +5,7 @@ import { ElMessageBox, ElMessage} from 'element-plus'
 import { useRouter, useRoute } from 'vue-router'
 import forge from 'node-forge'
 import cTable from '@/components/cTable.vue'
+import cResult from '@/components/cResult.vue'
 import cTextOrFile from '@/components/cTextOrFile.vue'
 import { copyLink } from '@/composables/copyLink'
 import { copyData } from '@/composables/copyData'
@@ -22,6 +23,7 @@ const form = reactive({
     message: '',
     type: 'text',
     fileName: '',
+    encrypted: '',
 })
 const loading = ref(false)
 const drawer = reactive({
@@ -72,15 +74,7 @@ async function encryptHandler(eventData){
         ElMessage.error({message: error})
         return
     }
-    let now = new Date()
-    encrypt.data.unshift({
-        date: now,
-        name: form.name.trim(),
-        enc: message.encode64(),
-        raw: form.message,
-        pub: form.key.trim(),
-    })
-    encrypt.set()
+    form.encrypted = message
 }
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -215,7 +209,20 @@ addEventListener('resize', () => {
                 Encrypt
             </el-button>
         </el-form-item>
-        <el-form-item v-if="encrypt.data.length!=0">
+        <el-form-item v-if="form.encrypted != ''">
+            <cResult
+            :data="form.encrypted"
+            
+            >
+                <template #icon>
+                    <el-icon color="green"><Lock/></el-icon>
+                </template>
+                <template #message>
+                    <el-text>
+                        successfully encrypted
+                    </el-text>
+                </template>
+            </cResult>
             <cTable
             :data="encrypt.data"
             :loading="loading"
